@@ -45,16 +45,16 @@ function LoginPage() {
         />
         <button type="submit" style={styles.button}>Ingresar</button>
         {error && <p style={styles.error}>{error}</p>}
-        <p style={{ marginTop: "10px" }}>
-          ¿No tienes cuenta?{" "}
-          <span
-            style={{ color: "#1976d2", cursor: "pointer" }}
-            onClick={() => navigate("/register")}
-          >
-            Regístrate aquí
-          </span>
-        </p>
       </form>
+
+      {/* Botón para ir al registro */}
+      <button
+        type="button"
+        onClick={() => navigate("/register")}
+        style={styles.registerButton}
+      >
+        ¿No tienes cuenta? Crea una aquí
+      </button>
     </div>
   );
 }
@@ -87,6 +87,16 @@ const styles = {
     color: "red",
     marginTop: "10px",
     textAlign: "center" as const,
+  },
+  registerButton: {
+    marginTop: "15px",
+    backgroundColor: "#e0e0e0",
+    color: "#1976d2",
+    border: "none",
+    padding: "10px",
+    borderRadius: "5px",
+    cursor: "pointer",
+    width: "100%",
   },
 };
 
