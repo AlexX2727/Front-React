@@ -1,7 +1,7 @@
 import { useState  } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import "./RegisterStyles.css"; // Asegúrate de crear este archivo CSS
+import "./RegisterStyles.css"; 
 
 function RegisterPage() {
   const [form, setForm] = useState({

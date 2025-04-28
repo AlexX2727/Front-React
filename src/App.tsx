@@ -4,6 +4,9 @@ import './App.css'
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from './pages/RegisterPage';
+import CrearProyectoPage from './pages/CrearProyectosPage';
+import PrincipalPage from './pages/PrincipalPage';
+import MisProyectosPage from './pages/MisProyectosPage';
 
 function App() {
   return (
@@ -13,6 +16,9 @@ function App() {
         <Route path="/" element={<LoginPage />} />
                 <Route path="/dashboard" element={<h2>Bienvenido al Dashboard</h2>} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/crear-proyecto" element={<CrearProyectoPage />} />
+                <Route path='/principal' element={<PrincipalPage />} />
+                <Route path="/mis-proyectos" element={<MisProyectosPage />} />
 
 
         {/* Aquí luego agregamos otras páginas */}
