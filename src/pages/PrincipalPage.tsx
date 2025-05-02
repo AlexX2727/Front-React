@@ -86,7 +86,7 @@ function PrincipalPage() {
             <span style={styles.navIcon}>👥</span>
             <span>Equipo</span>
           </button>
-          <button style={styles.navButton} className="nav-button" onClick={() => navigate("/perfil")}>
+          <button style={styles.navButton} className="nav-button" onClick={() => navigate("/editar-perfil")}>
             <span style={styles.navIcon}>👤</span>
             <span>Perfil</span>
           </button>

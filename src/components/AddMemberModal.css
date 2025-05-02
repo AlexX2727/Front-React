@@ -1,0 +1,206 @@
+/* Modal general */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease;
+  }
+  
+  .modal-container {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+    width: 95%;
+    max-width: 500px;
+    padding: 0;
+    overflow: hidden;
+    animation: slideUp 0.4s ease;
+  }
+  
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid #eaeaea;
+  }
+  
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+  }
+  
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    color: #999;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  
+  .modal-close:hover {
+    color: #333;
+    transform: scale(1.1);
+  }
+  
+  .modal-body {
+    padding: 24px;
+  }
+  
+  /* Estilos específicos para el formulario dentro del modal */
+  .add-member-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .form-group label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #555;
+  }
+  
+  .form-group input, 
+  .form-group select {
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 1rem;
+    transition: border 0.2s;
+  }
+  
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: #4a90e2;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+  }
+  
+  .form-group select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    padding-right: 42px;
+  }
+  
+  .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    padding: 16px 24px;
+    border-top: 1px solid #eaeaea;
+    background-color: #f9f9f9;
+  }
+  
+  .btn {
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  .btn-primary {
+    background-color: #4a90e2;
+    color: white;
+  }
+  
+  .btn-primary:hover {
+    background-color: #3a80d2;
+  }
+  
+  .btn-primary:disabled {
+    background-color: #a5c6f1;
+    cursor: not-allowed;
+  }
+  
+  .btn-secondary {
+    background-color: #f5f5f5;
+    color: #555;
+  }
+  
+  .btn-secondary:hover {
+    background-color: #eaeaea;
+  }
+  
+  .message {
+    padding: 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin: 8px 0;
+  }
+  
+  .error-message {
+    background-color: #fff2f0;
+    color: #f44336;
+    border: 1px solid #ffccc7;
+  }
+  
+  .success-message {
+    background-color: #f0fff4;
+    color: #52c41a;
+    border: 1px solid #b7eb8f;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  /* Animaciones */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideUp {
+    from { 
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to { 
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Diseño responsivo */
+  @media (max-width: 600px) {
+    .modal-container {
+      width: 100%;
+      max-height: 90vh;
+      border-radius: 12px 12px 0 0;
+      margin-bottom: 0;
+      position: absolute;
+      bottom: 0;
+    }
+    
+    .modal-footer {
+      padding: 16px;
+    }
+    
+    .modal-footer .btn {
+      flex: 1;
+    }
+  }

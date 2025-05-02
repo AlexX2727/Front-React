@@ -7,6 +7,8 @@ import RegisterPage from './pages/RegisterPage';
 import CrearProyectoPage from './pages/CrearProyectosPage';
 import PrincipalPage from './pages/PrincipalPage';
 import MisProyectosPage from './pages/MisProyectosPage';
+import AñadirMiembrosPage from './pages/AñadirMiembrosPage';
+import EditarPerfilPage from './pages/EditarPerfilPage';
 
 function App() {
   return (
@@ -19,6 +21,8 @@ function App() {
                 <Route path="/crear-proyecto" element={<CrearProyectoPage />} />
                 <Route path='/principal' element={<PrincipalPage />} />
                 <Route path="/mis-proyectos" element={<MisProyectosPage />} />
+                <Route path="/añadir-miembro/:projectId" element={<AñadirMiembrosPage />} />
+                <Route path="/editar-perfil" element={<EditarPerfilPage />} />
 
 
         {/* Aquí luego agregamos otras páginas */}

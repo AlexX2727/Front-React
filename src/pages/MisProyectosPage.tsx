@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom"; 
 import api from "../api/axios";
 import "./MisProyectos.css"; 
+import AddMemberModal from "../components/AddMemberModal";
 
 interface Proyecto {
   id: number;
@@ -20,34 +21,36 @@ function MisProyectosPage() {
   const [proyectos, setProyectos] = useState<Proyecto[]>([]);
   const [loading, setLoading] = useState(true);
   const [hoverIndex, setHoverIndex] = useState<number | null>(null);
-  const navigate = useNavigate(); // Para manejar redirecciones
+  const [showModal, setShowModal] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
 
-  useEffect(() => {
-    const fetchProyectos = async () => {
-      try {
-        const res = await api.get(`/projects/owner/${user.id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          },
-        });
-        setProyectos(res.data);
-      } catch (error) {
-        console.error("Error cargando proyectos:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchProyectos = async () => {
+    try {
+      const res = await api.get(`/projects/owner/${user.id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      setProyectos(res.data);
+    } catch (error) {
+      console.error("Error cargando proyectos:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (user) {
       fetchProyectos();
     }
   }, [user]);
 
   const handleCreateProject = () => {
-    navigate("/crear-proyecto"); // Redirige a la ruta de crear proyecto
+    navigate("/crear-proyecto");
   };
 
   const handleEditClick = (id: number) => {
@@ -56,8 +59,18 @@ function MisProyectosPage() {
   };
 
   const handleAddMembersClick = (id: number) => {
-    console.log(`Añadir miembros al proyecto con ID: ${id}`);
-    // Aquí puedes implementar la lógica para añadir miembros
+    setSelectedProjectId(id);
+    setShowModal(true);
+  };
+  
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setSelectedProjectId(null);
+  };
+
+  const handleMemberAdded = () => {
+    // Refrescar los datos del proyecto después de añadir un miembro
+    fetchProyectos();
   };
 
   const formatDate = (dateString?: string) => {
@@ -176,6 +189,15 @@ function MisProyectosPage() {
             </div>
           ))}
         </div>
+      )}
+
+      {/* Modal para añadir miembros */}
+      {showModal && selectedProjectId && (
+        <AddMemberModal
+          projectId={selectedProjectId}
+          onClose={handleCloseModal}
+          onSuccess={handleMemberAdded}
+        />
       )}
     </div>
   );
