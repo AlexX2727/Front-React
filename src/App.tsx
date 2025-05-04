@@ -9,6 +9,7 @@ import PrincipalPage from './pages/PrincipalPage';
 import MisProyectosPage from './pages/MisProyectosPage';
 import AñadirMiembrosPage from './pages/AñadirMiembrosPage';
 import EditarPerfilPage from './pages/EditarPerfilPage';
+import PerfilPage from './pages/PerfilPage';
 
 function App() {
   return (
@@ -23,6 +24,7 @@ function App() {
                 <Route path="/mis-proyectos" element={<MisProyectosPage />} />
                 <Route path="/añadir-miembro/:projectId" element={<AñadirMiembrosPage />} />
                 <Route path="/editar-perfil" element={<EditarPerfilPage />} />
+                <Route path="/perfil" element={<PerfilPage />} />
 
 
         {/* Aquí luego agregamos otras páginas */}

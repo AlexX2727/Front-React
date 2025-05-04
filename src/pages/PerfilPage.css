@@ -1,0 +1,440 @@
+/* PerfilPage.css */
+:root {
+    --primary-bg: #121212;
+    --card-bg: #1e1e1e;
+    --text-primary: #eaeaea;
+    --text-secondary: #a0a0a0;
+    --accent-color: #444;
+    --border-color: #333;
+    --highlight-color: #555;
+    --error-color: #e53935;
+    --success-color: #43a047;
+    --transition-time: 0.3s;
+  }
+  
+  /* Resetear estilos para ocupar toda la página */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body, html {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: var(--primary-bg);
+  }
+  
+  /* Contenedor principal que ocupa toda la página */
+  .page-container {
+    min-height: 100vh;
+    width: 100vw;
+    background-color: var(--primary-bg);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center; /* Centrado vertical */
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    background-image: radial-gradient(circle at 10% 20%, rgba(40, 40, 40, 0.8) 0%, rgba(18, 18, 18, 1) 90%);
+  }
+  
+  .page-content {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  
+  /* Hacer el card más grande */
+  .profile-card {
+    width: 90%; /* Ocupa el 90% del ancho disponible */
+    max-width: 1600px; /* Tamaño máximo más grande */
+    min-height: 800px; /* Altura mínima más grande */
+    margin: 0 auto;
+    background-color: var(--card-bg);
+    border-radius: 16px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+    overflow: hidden;
+    transition: transform var(--transition-time), box-shadow var(--transition-time);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .profile-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.5);
+  }
+  
+  .profile-header {
+    padding: 40px 50px; /* Padding más grande */
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: linear-gradient(to right, rgba(40, 40, 40, 0.7), rgba(30, 30, 30, 0.9));
+  }
+  
+  /* Título más grande */
+  .profile-title {
+    margin: 0;
+    font-size: 42px; /* Texto más grande */
+    font-weight: 700;
+    letter-spacing: 1px;
+    background: linear-gradient(45deg, #fff, #999, #fff);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 3s linear infinite;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  @keyframes shine {
+    to {
+      background-position: 200% center;
+    }
+  }
+  
+  .profile-actions {
+    display: flex;
+    gap: 20px; /* Más espacio entre botones */
+  }
+  
+  .edit-button, .back-button {
+    background: linear-gradient(135deg, var(--accent-color), var(--highlight-color));
+    color: var(--text-primary);
+    border: none;
+    border-radius: 8px;
+    padding: 15px 30px; /* Botones más grandes */
+    cursor: pointer;
+    font-size: 18px; /* Texto más grande */
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: all var(--transition-time);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.5px;
+  }
+  
+  .edit-button:hover, .back-button:hover {
+    background: linear-gradient(135deg, var(--highlight-color), var(--accent-color));
+    transform: translateY(-2px) scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  }
+  
+  .button-icon {
+    font-size: 20px; /* Iconos más grandes */
+    transition: transform 0.2s;
+  }
+  
+  .edit-button:hover .button-icon, .back-button:hover .button-icon {
+    transform: translateY(-2px);
+  }
+  
+  /* Hacer el contenido principal más grande y mejor distribuido */
+  .profile-content {
+    flex: 1; /* Ocupar todo el espacio restante */
+    padding: 50px; /* Padding más grande */
+    display: flex;
+    gap: 80px; /* Más espacio entre secciones */
+    background-color: rgba(25, 25, 25, 0.6);
+  }
+  
+  @media (max-width: 992px) {
+    .profile-content {
+      flex-direction: column;
+      align-items: center;
+      padding: 40px;
+    }
+  }
+  
+  .profile-avatar-container {
+    flex-shrink: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Avatar más grande */
+  .profile-avatar {
+    width: 300px; /* Avatar más grande */
+    height: 300px; /* Avatar más grande */
+    border-radius: 50%;
+    object-fit: cover;
+    border: 6px solid var(--accent-color); /* Borde más grueso */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    transition: all var(--transition-time);
+    filter: drop-shadow(0 0 10px rgba(150, 150, 150, 0.1));
+    margin-bottom: 30px; /* Espacio debajo del avatar */
+  }
+  
+  .profile-avatar:hover {
+    transform: scale(1.05) rotate(3deg);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border-color: var(--highlight-color);
+  }
+  
+  .profile-avatar-placeholder {
+    width: 300px; /* Más grande */
+    height: 300px; /* Más grande */
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, var(--accent-color), var(--highlight-color));
+    color: var(--text-primary);
+    font-size: 96px; /* Texto más grande */
+    font-weight: bold;
+    border: 6px solid var(--accent-color);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    transition: all var(--transition-time);
+    margin-bottom: 30px; /* Espacio debajo del avatar */
+  }
+  
+  .profile-avatar-placeholder:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+  
+  .profile-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+  
+  .info-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); /* Columnas más anchas */
+    gap: 50px; /* Más espacio entre grupos */
+  }
+  
+  .info-group {
+    margin-bottom: 40px; /* Más espacio entre grupos */
+    background-color: rgba(30, 30, 30, 0.6);
+    padding: 35px; /* Padding más grande */
+    border-radius: 16px; /* Bordes más redondeados */
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    transition: transform var(--transition-time), box-shadow var(--transition-time);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  
+  .info-group:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Títulos de sección más grandes */
+  .section-title {
+    margin: 0 0 30px 0; /* Más espacio debajo */
+    font-size: 28px; /* Texto más grande */
+    font-weight: 600;
+    color: var(--text-primary);
+    position: relative;
+    padding-bottom: 15px;
+    letter-spacing: 1px;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  }
+  
+  .section-title::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 80px; /* Línea más larga */
+    height: 4px; /* Línea más gruesa */
+    background: linear-gradient(90deg, var(--accent-color), var(--highlight-color));
+    border-radius: 3px;
+    transition: width 0.3s ease;
+  }
+  
+  .info-group:hover .section-title::after {
+    width: 120px; /* Línea más larga en hover */
+  }
+  
+  /* Filas de información más grandes */
+  .info-row {
+    margin-bottom: 25px; /* Más espacio entre filas */
+    padding-bottom: 20px; /* Más padding */
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px; /* Más espacio entre label y valor */
+    transition: all 0.3s ease;
+  }
+  
+  .info-label {
+    min-width: 120px; /* Labels más anchos */
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    font-size: 18px; /* Texto más grande */
+  }
+  
+  .info-value {
+    font-weight: 500;
+    flex: 1;
+    word-break: break-word;
+    letter-spacing: 0.5px;
+    color: var(--text-primary);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    transition: color 0.3s ease;
+    font-size: 18px; /* Texto más grande */
+  }
+  
+  .info-row:hover .info-value {
+    color: #ffffff;
+  }
+  
+  .role-badge {
+    display: inline-block;
+    padding: 8px 18px; /* Badge más grande */
+    background: linear-gradient(135deg, var(--accent-color), var(--highlight-color));
+    border-radius: 25px; /* Bordes más redondeados */
+    color: var(--text-primary);
+    font-size: 16px; /* Texto más grande */
+    font-weight: 500;
+    text-transform: capitalize;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+  }
+  
+  .role-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, var(--highlight-color), var(--accent-color));
+  }
+  
+  .profile-error {
+    margin: 20px 40px;
+    padding: 15px 20px;
+    background-color: rgba(229, 57, 53, 0.1);
+    border-left: 4px solid var(--error-color);
+    color: var(--error-color);
+    border-radius: 0 4px 4px 0;
+    font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    font-size: 16px; /* Texto más grande */
+  }
+  
+  /* Spinner de carga con efecto mejorado */
+  .profile-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    width: 100%;
+  }
+  
+  .loading-spinner {
+    width: 80px; /* Spinner más grande */
+    height: 80px; /* Spinner más grande */
+    border: 6px solid rgba(51, 51, 51, 0.3);
+    border-top: 6px solid var(--highlight-color);
+    border-radius: 50%;
+    animation: spin 1.2s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+    margin-bottom: 30px;
+    box-shadow: 0 0 20px rgba(85, 85, 85, 0.1);
+  }
+  
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+  
+  /* Efectos de hover en las secciones de información */
+  .info-row:hover {
+    background-color: rgba(255, 255, 255, 0.03);
+    transform: translateX(8px);
+    transition: all 0.3s ease;
+    border-bottom-color: var(--highlight-color);
+    padding-left: 10px;
+  }
+  
+  /* Resplandor en elementos clave */
+  @keyframes glow {
+    0% { box-shadow: 0 0 5px rgba(85, 85, 85, 0.3); }
+    50% { box-shadow: 0 0 15px rgba(85, 85, 85, 0.5); }
+    100% { box-shadow: 0 0 5px rgba(85, 85, 85, 0.3); }
+  }
+  
+  .profile-avatar, .profile-avatar-placeholder, .edit-button, .back-button {
+    animation: glow 3s infinite alternate;
+  }
+  
+  /* Media queries para asegurar responsividad */
+  @media (max-width: 1200px) {
+    .profile-card {
+      width: 95%;
+    }
+    
+    .profile-avatar, .profile-avatar-placeholder {
+      width: 250px;
+      height: 250px;
+    }
+  }
+  
+  @media (max-width: 992px) {
+    .profile-content {
+      padding: 30px;
+    }
+    
+    .info-section {
+      grid-template-columns: 1fr;
+    }
+    
+    .profile-avatar, .profile-avatar-placeholder {
+      width: 200px;
+      height: 200px;
+      font-size: 72px;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .profile-header {
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+      padding: 25px;
+    }
+    
+    .profile-title {
+      font-size: 28px;
+    }
+    
+    .profile-content {
+      padding: 20px;
+    }
+    
+    .profile-avatar, .profile-avatar-placeholder {
+      width: 150px;
+      height: 150px;
+      font-size: 48px;
+    }
+    
+    .section-title {
+      font-size: 22px;
+    }
+    
+    .info-label, .info-value {
+      font-size: 16px;
+    }
+  }
