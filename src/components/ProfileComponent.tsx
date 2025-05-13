@@ -1,4 +1,4 @@
-// ProfileComponent.tsx - Este será el componente que reemplazará a PerfilPage
+
 import { useEffect, useState } from "react";
 import api from "../api/axios";
 import "./ProfileComponent.css";

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import api from "../api/axios"; // Ajusta esta ruta si usas otra
+import api from "../api/axios"; 
 
 const roles = [
   { label: "Miembro", value: "Member" },
