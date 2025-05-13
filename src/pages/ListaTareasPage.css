@@ -1,0 +1,427 @@
+/* Estilos para la página de lista de tareas - Tema Oscuro */
+:root {
+    --color-bg-primary: #121212;
+    --color-bg-secondary: #1e1e1e;
+    --color-bg-tertiary: #2d2d2d;
+    --color-text-primary: #ffffff;
+    --color-text-secondary: #b3b3b3;
+    --color-accent: #bb86fc;
+    --color-accent-hover: #9d4edd;
+    --color-border: #333333;
+    --color-error: #cf6679;
+    --color-success: #03dac6;
+    --color-warning: #ffb74d;
+    
+    /* Estados de tareas */
+    --color-todo-bg: #2d2d2d;
+    --color-todo-text: #b3b3b3;
+    --color-progress-bg: #253659;
+    --color-progress-text: #90caf9;
+    --color-review-bg: #4d3c00;
+    --color-review-text: #ffeb3b;
+    --color-done-bg: #1b3b29;
+    --color-done-text: #81c784;
+    --color-blocked-bg: #4a2a2a;
+    --color-blocked-text: #ef9a9a;
+    
+    /* Prioridades */
+    --color-low-bg: #253037;
+    --color-low-text: #80cbc4;
+    --color-medium-bg: #253142;
+    --color-medium-text: #90caf9;
+    --color-high-bg: #472e1b;
+    --color-high-text: #ffb74d;
+    --color-critical-bg: #4a2a2a;
+    --color-critical-text: #ef9a9a;
+  }
+  
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  
+  .lista-tareas-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+    box-sizing: border-box;
+  }
+  
+  .lista-tareas-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--color-border);
+  }
+  
+  .lista-tareas-header h1 {
+    color: var(--color-text-primary);
+    font-size: 28px;
+    margin: 0;
+    font-weight: 600;
+  }
+  
+  .btn-crear-tarea {
+    background-color: var(--color-accent);
+    color: #121212;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .btn-crear-tarea:hover {
+    background-color: var(--color-accent-hover);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  /* Estilos para los filtros */
+  .filtros-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    background-color: var(--color-bg-secondary);
+    padding: 16px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .filtro-grupo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 250px;
+  }
+  
+  .filtro-grupo label {
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    font-size: 14px;
+    flex-shrink: 0;
+    min-width: 60px;
+  }
+  
+  .filtro-grupo select {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-primary);
+    font-size: 14px;
+    appearance: none;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b3b3b3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    padding-right: 30px;
+  }
+  
+  .filtro-grupo select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.3);
+  }
+  
+  /* Estilos para mensajes */
+  .mensaje-cargando,
+  .mensaje-error,
+  .mensaje-sin-tareas {
+    margin: 20px 0;
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 15px;
+  }
+  
+  .mensaje-cargando {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    border-left: 4px solid var(--color-accent);
+  }
+  
+  .mensaje-error {
+    background-color: rgba(207, 102, 121, 0.1);
+    color: var(--color-error);
+    border-left: 4px solid var(--color-error);
+  }
+  
+  .mensaje-sin-tareas {
+    background-color: var(--color-bg-secondary);
+    color: var(--color-text-secondary);
+    padding: 40px 20px;
+    font-style: italic;
+    border-radius: 8px;
+  }
+  
+  /* Estilos para la tabla de tareas */
+  .tabla-tareas-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    background-color: var(--color-bg-secondary);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  }
+  
+  .tabla-tareas {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    color: var(--color-text-primary);
+  }
+  
+  .tabla-tareas th {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-text-secondary);
+    font-weight: 500;
+    text-align: left;
+    padding: 16px;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--color-border);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  .tabla-tareas td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
+    font-size: 14px;
+  }
+  
+  .tabla-tareas tbody tr {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .tabla-tareas tbody tr:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  /* Estilos para los badges de estado */
+  .estado-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    min-width: 100px;
+    letter-spacing: 0.5px;
+  }
+  
+  .estado-pendiente {
+    background-color: var(--color-todo-bg);
+    color: var(--color-todo-text);
+  }
+  
+  .estado-progreso {
+    background-color: var(--color-progress-bg);
+    color: var(--color-progress-text);
+  }
+  
+  .estado-revision {
+    background-color: var(--color-review-bg);
+    color: var(--color-review-text);
+  }
+  
+  .estado-completado {
+    background-color: var(--color-done-bg);
+    color: var(--color-done-text);
+  }
+  
+  .estado-bloqueado {
+    background-color: var(--color-blocked-bg);
+    color: var(--color-blocked-text);
+  }
+  
+  /* Estilos para los badges de prioridad */
+  .prioridad-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  
+  .prioridad-baja {
+    background-color: var(--color-low-bg);
+    color: var(--color-low-text);
+  }
+  
+  .prioridad-media {
+    background-color: var(--color-medium-bg);
+    color: var(--color-medium-text);
+  }
+  
+  .prioridad-alta {
+    background-color: var(--color-high-bg);
+    color: var(--color-high-text);
+  }
+  
+  .prioridad-critica {
+    background-color: var(--color-critical-bg);
+    color: var(--color-critical-text);
+  }
+  
+  /* Estilos para usuarios asignados */
+  .usuario-asignado {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .sin-asignar {
+    color: var(--color-text-secondary);
+    font-style: italic;
+    font-size: 13px;
+  }
+  
+  /* Botón de acción */
+  .btn-ver-detalle {
+    background-color: var(--color-bg-tertiary);
+    color: var(--color-accent);
+    border: 1px solid var(--color-accent);
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  
+  .btn-ver-detalle:hover {
+    background-color: var(--color-accent);
+    color: #121212;
+  }
+  
+  /* Responsive - Adaptaciones para diferentes tamaños */
+  @media (max-width: 1200px) {
+    .lista-tareas-container {
+      padding: 16px;
+    }
+    
+    .tabla-tareas th,
+    .tabla-tareas td {
+      padding: 12px;
+    }
+  }
+  
+  @media (max-width: 992px) {
+    .filtro-grupo {
+      min-width: 200px;
+    }
+    
+    .estado-badge {
+      min-width: 80px;
+      font-size: 11px;
+      padding: 5px 8px;
+    }
+    
+    .prioridad-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .lista-tareas-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    
+    .btn-crear-tarea {
+      width: 100%;
+    }
+    
+    .filtros-container {
+      flex-direction: column;
+      padding: 12px;
+    }
+    
+    .filtro-grupo {
+      width: 100%;
+    }
+    
+    /* Ajustar la tabla para móviles */
+    .tabla-tareas {
+      display: block;
+    }
+    
+    .tabla-tareas thead {
+      display: none; /* Ocultar cabeceras en móvil */
+    }
+    
+    .tabla-tareas tbody {
+      display: block;
+    }
+    
+    .tabla-tareas tr {
+      display: block;
+      margin-bottom: 16px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      padding: 12px;
+      background-color: var(--color-bg-tertiary);
+    }
+    
+    .tabla-tareas td {
+      display: flex;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      align-items: center;
+    }
+    
+    .tabla-tareas td:last-child {
+      border-bottom: none;
+    }
+    
+    .tabla-tareas td::before {
+      content: attr(data-label);
+      font-weight: 600;
+      width: 120px;
+      min-width: 120px;
+      color: var(--color-text-secondary);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-right: 12px;
+    }
+    
+    .btn-ver-detalle {
+      width: 100%;
+      text-align: center;
+      margin-top: 8px;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    .lista-tareas-container {
+      padding: 12px;
+    }
+    
+    .lista-tareas-header h1 {
+      font-size: 24px;
+    }
+    
+    .tabla-tareas td::before {
+      width: 100px;
+      min-width: 100px;
+    }
+  }
