@@ -1,5 +1,5 @@
-
 import './App.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
@@ -12,7 +12,10 @@ import EditarPerfilPage from './pages/EditarPerfilPage';
 import PerfilPage from './pages/PerfilPage';
 import TareasPage from './pages/TareasPage';
 import ListaTareasPage from './pages/ListaTareasPage';
-import DetalleTareaPage from './pages/DetalleTareaPage';
+
+// Importaciones para Toast notifications
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
@@ -29,11 +32,22 @@ function App() {
                 <Route path="/editar-perfil" element={<EditarPerfilPage />} />
                 <Route path="/perfil" element={<PerfilPage />} />
                 <Route path="/tareas" element={<TareasPage />} />
-                <Route path="/listartareas" element={<ListaTareasPage />} />
-                <Route path="/tareas/:id" element={<DetalleTareaPage />} /> 
-       
-       
+                <Route path="/listartareas" element={<ListaTareasPage />} /> 
       </Routes>
+      
+      {/* Configuración del contenedor de notificaciones Toast */}
+      <ToastContainer 
+        position="bottom-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="dark" // Tema oscuro para que coincida con tu diseño
+      />
     </Router>
   );
 }

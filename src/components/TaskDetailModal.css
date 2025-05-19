@@ -1,0 +1,265 @@
+/* Estilos para el modal de detalle de tarea - Tema Oscuro */
+.modal-content {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  border-bottom: 1px solid var(--color-border);
+  padding: 16px 20px;
+}
+
+.modal-header .modal-title {
+  color: var(--color-text-primary);
+  font-weight: 600;
+}
+
+.modal-header .close,
+.modal-header .btn-close {
+  color: var(--color-text-secondary);
+  opacity: 0.7;
+  transition: opacity 0.3s;
+  background-color: transparent;
+}
+
+.modal-header .close:hover,
+.modal-header .btn-close:hover {
+  opacity: 1;
+  color: var(--color-text-primary);
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-footer {
+  border-top: 1px solid var(--color-border);
+  padding: 16px 20px;
+}
+
+/* Estilos para los formularios en el modal */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.form-control {
+  background-color: var(--color-bg-tertiary) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  border-radius: 4px;
+  padding: 10px 14px;
+  width: 100%;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.form-control:focus {
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.3) !important;
+  outline: none;
+}
+
+.form-control::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.form-control:disabled,
+.form-control[readonly] {
+  background-color: rgba(45, 45, 45, 0.7) !important;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.form-control[type="date"] {
+  appearance: none;
+}
+
+/* Estilos para los select */
+.form-select,
+select.form-control {
+  background-color: var(--color-bg-tertiary) !important;
+  border: 1px solid var(--color-border) !important;
+  color: var(--color-text-primary) !important;
+  border-radius: 4px;
+  padding: 10px 14px;
+  width: 100%;
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b3b3b3' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 16px !important;
+  padding-right: 30px !important;
+}
+
+.form-select:focus,
+select.form-control:focus {
+  border-color: var(--color-accent) !important;
+  box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.3) !important;
+  outline: none;
+}
+
+.form-select option,
+select.form-control option {
+  background-color: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+}
+
+/* Estilos para textareas */
+textarea.form-control {
+  min-height: 120px;
+  resize: vertical;
+}
+
+/* Estilos para los botones */
+.btn {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  text-transform: none;
+  letter-spacing: 0.3px;
+}
+
+.btn-primary {
+  background-color: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  color: #121212 !important;
+}
+
+.btn-primary:hover {
+  background-color: var(--color-accent-hover) !important;
+  border-color: var(--color-accent-hover) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.btn-secondary {
+  background-color: var(--color-bg-tertiary) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-text-secondary) !important;
+}
+
+.btn-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: var(--color-text-primary) !important;
+}
+
+/* Estilos para alertas */
+.alert {
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+
+.alert-success {
+  background-color: rgba(3, 218, 198, 0.15);
+  border-left: 4px solid var(--color-success);
+  color: var(--color-success);
+}
+
+.alert-danger {
+  background-color: rgba(207, 102, 121, 0.15);
+  border-left: 4px solid var(--color-error);
+  color: var(--color-error);
+}
+
+/* Estilos para el spinner de carga */
+.spinner-border {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-width: 0.2em;
+  color: var(--color-accent);
+}
+
+.text-center {
+  text-align: center;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Estilos para el layout del formulario */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -10px;
+  margin-left: -10px;
+}
+
+.col-md-6 {
+  flex: 0 0 50%;
+  max-width: 50%;
+  padding-right: 10px;
+  padding-left: 10px;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.me-2 {
+  margin-right: 0.5rem;
+}
+
+.mt-4 {
+  margin-top: 1.5rem;
+}
+
+.text-end {
+  text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .col-md-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  
+  .modal-body {
+    padding: 15px;
+  }
+  
+  .row {
+    margin-right: -5px;
+    margin-left: -5px;
+  }
+  
+  .col-md-6 {
+    padding-right: 5px;
+    padding-left: 5px;
+  }
+  
+  .text-end {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .text-end .btn {
+    width: 100%;
+    margin-right: 0 !important;
+  }
+}

@@ -1,25 +1,49 @@
+// axios.ts
+
 import axios from "axios";
 
-const api = axios.create({
+// Configuración adicional para depuración
+const axiosInstance = axios.create({
   baseURL: "http://localhost:3000", // Puerto donde corre el backend
   headers: {
     "Content-Type": "application/json",
-  },
-});
-
-// Configurar el token en las solicitudes
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
   }
-  return config;
 });
 
-// Interceptor para manejar errores de autenticación globalmente
-api.interceptors.response.use(
-  response => response,
+// Interceptor para agregar el token a las solicitudes
+axiosInstance.interceptors.request.use(
+  config => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    
+    // Log para depuración
+    console.log(`${config.method?.toUpperCase()} ${config.url}`, {
+      headers: config.headers,
+      data: config.data
+    });
+    
+    return config;
+  },
   error => {
+    return Promise.reject(error);
+  }
+);
+
+// Interceptor para respuestas
+axiosInstance.interceptors.response.use(
+  response => {
+    // Log para respuestas exitosas
+    console.log(`Respuesta ${response.config.url}:`, {
+      status: response.status,
+      data: response.data
+    });
+    
+    return response;
+  },
+  error => {
+    // Manejar errores, especialmente 401
     if (error.response?.status === 401) {
       console.log('Error de autenticación detectado');
       
@@ -30,15 +54,17 @@ api.interceptors.response.use(
         localStorage.removeItem('token');
         localStorage.removeItem('user');
       }
-      
-      // No redirigir inmediatamente, permitir que la aplicación maneje el error
-      return Promise.reject({
-        ...error,
-        message: 'Sesión expirada. Por favor, inicia sesión nuevamente.'
-      });
     }
+    
+    // Log para errores
+    console.error(`Error en ${error.config?.url}:`, {
+      status: error.response?.status,
+      data: error.response?.data,
+      message: error.message
+    });
+    
     return Promise.reject(error);
   }
 );
 
-export default api;
+export default axiosInstance;

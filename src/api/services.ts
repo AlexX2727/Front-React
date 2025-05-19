@@ -68,6 +68,22 @@ export interface Task {
     email: string;
     fullName: string;
   };
+  project?: {
+    id: number;
+    name: string;
+    status: string;
+  };
+}
+
+export interface User {
+  id: number;
+  firstName?: string;
+  lastName?: string;
+  username?: string;
+  email?: string;
+  avatar?: string;
+  fullName?: string;
+  role?: string;
 }
 
 // Servicios de proyectos
@@ -238,8 +254,7 @@ export const updateTask = async (taskId: number, updateData: UpdateTaskDto): Pro
     console.log('Datos recibidos para actualización:', updateData);
 
     // Formatear datos para coincidencia exacta con backend
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const formattedData: Record<string, any> = {};
+    const formattedData: any = {}; // Cambiamos a 'any' para mayor flexibilidad
 
     // Solo incluir campos que tienen valores (para evitar problemas con los nulos)
     if (updateData.title !== undefined) {
@@ -260,22 +275,12 @@ export const updateTask = async (taskId: number, updateData: UpdateTaskDto): Pro
     
     // Procesar dueDate
     if (updateData.dueDate !== undefined) {
-      if (updateData.dueDate === null) {
-        formattedData.dueDate = null;
-      } else {
-        // Para fechas, enviar tal cual en formato YYYY-MM-DD
-        formattedData.dueDate = updateData.dueDate;
-      }
+      formattedData.dueDate = updateData.dueDate === null ? null : updateData.dueDate;
     }
     
     // Procesar completedAt
     if (updateData.completedAt !== undefined) {
-      if (updateData.completedAt === null) {
-        formattedData.completedAt = null;
-      } else {
-        // Para fechas, enviar tal cual en formato YYYY-MM-DD
-        formattedData.completedAt = updateData.completedAt;
-      }
+      formattedData.completedAt = updateData.completedAt === null ? null : updateData.completedAt;
     }
     
     // Procesar estimatedHours
@@ -285,11 +290,7 @@ export const updateTask = async (taskId: number, updateData: UpdateTaskDto): Pro
     
     // Asegurarse de que las horas actuales sean string
     if (updateData.actualHours !== undefined) {
-      if (updateData.actualHours === null) {
-        formattedData.actualHours = null;
-      } else {
-        formattedData.actualHours = String(updateData.actualHours);
-      }
+      formattedData.actualHours = updateData.actualHours === null ? null : String(updateData.actualHours);
     }
     
     // Procesar assignee_id
@@ -299,23 +300,35 @@ export const updateTask = async (taskId: number, updateData: UpdateTaskDto): Pro
 
     // Log de depuración
     console.log('Datos a enviar para actualización (formateados):', formattedData);
+    
+    // Este log es crucial - verificar el cuerpo de la solicitud
+    console.log('JSON a enviar:', JSON.stringify(formattedData));
 
-    // Enviar actualización
+    // Verificar que el objeto no esté vacío
+    if (Object.keys(formattedData).length === 0) {
+      console.error('Error: Intentando enviar un objeto vacío al backend');
+      throw new Error('No hay datos para actualizar');
+    }
+
+    // Enviar actualización - usar axios directamente para mayor control
     const response = await api.patch(`/tasks/${taskId}`, formattedData, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       }
     });
     
+    // Log de respuesta
+    console.log('Respuesta del servidor:', response.data);
+    
     return response.data;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     console.error('Error detallado al actualizar tarea:', {
       status: error?.response?.status,
       message: error?.response?.data?.message,
       errors: error?.response?.data?.errors,
-      data: error?.response?.data
+      data: error?.response?.data,
+      originalError: error.message
     });
     
     if (error?.response?.status === 401) {
@@ -324,5 +337,127 @@ export const updateTask = async (taskId: number, updateData: UpdateTaskDto): Pro
     }
     throw error;
   }
-  
+};
+
+/**
+ * Obtiene tareas con múltiples opciones de filtrado
+ */
+export const getTasksWithFilters = async (options: {
+  projectId?: number;
+  assigneeId?: number;
+  myTasks?: boolean;
+  userId?: number;
+  status?: string;
+  priority?: string;
+}): Promise<Task[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No hay token de autenticación');
+    }
+    
+    // Construir la URL con los parámetros de filtro
+    const params = new URLSearchParams();
+    
+    if (options.projectId !== undefined) {
+      params.append('projectId', options.projectId.toString());
+    }
+    
+    if (options.assigneeId !== undefined) {
+      params.append('assigneeId', options.assigneeId.toString());
+    }
+    
+    if (options.myTasks) {
+      params.append('myTasks', 'true');
+    }
+    
+    if (options.status) {
+      params.append('status', options.status);
+    }
+    
+    if (options.priority) {
+      params.append('priority', options.priority);
+    }
+    
+    // Log para depuración
+    console.log('Params de filtro:', Object.fromEntries(params.entries()));
+    
+    const url = `/tasks/filter?${params.toString()}`;
+    console.log('URL completa:', url);
+    
+    const response = await api.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    
+    return response.data;
+  } catch (error: any) {
+    console.error('Error al obtener tareas con filtros:', error);
+    console.error('Detalles del error:', {
+      status: error?.response?.status,
+      data: error?.response?.data,
+      message: error?.response?.data?.message,
+    });
+    
+    if (error?.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+    throw error;
+  }
+};
+
+/**
+ * Obtiene los miembros de un proyecto específico
+ */
+export const getTaskProjectMembers = async (projectId: number): Promise<User[]> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No hay token de autenticación');
+    }
+    
+    const response = await api.get(`/tasks/project/${projectId}/members`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    
+    return response.data;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error('Error al obtener miembros del proyecto:', error);
+    if (error?.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+    throw error;
+  }
+};
+
+/**
+ * Elimina una tarea
+ */
+export const deleteTask = async (taskId: number): Promise<void> => {
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('No hay token de autenticación');
+    }
+    
+    await api.delete(`/tasks/${taskId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.error('Error al eliminar tarea:', error);
+    if (error?.response?.status === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+    }
+    throw error;
+  }
 };
