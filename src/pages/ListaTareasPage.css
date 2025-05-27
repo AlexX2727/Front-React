@@ -621,3 +621,42 @@ textarea.form-control {
   white-space: nowrap !important;
   border: 0 !important;
 }
+/* Estilos para los botones de acción */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-comentarios {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  padding: 6px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-comentarios:hover {
+  background-color: #495057;
+  transform: translateY(-2px);
+}
+
+/* Ajuste para pantallas pequeñas */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  .btn-ver-detalle,
+  .btn-comentarios {
+    width: 100%;
+    margin-bottom: 5px;
+  }
+}

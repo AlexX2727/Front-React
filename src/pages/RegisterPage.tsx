@@ -1,215 +1,236 @@
-import { useState  } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/axios";
-import "./RegisterStyles.css"; 
+import "./RegisterStyles.css";
 
-function RegisterPage() {
-  const [form, setForm] = useState({
+interface FormData {
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+const RegisterPage: React.FC = () => {
+  const [form, setForm] = useState<FormData>({
     firstName: "",
     lastName: "",
     username: "",
     email: "",
     password: "",
+    confirmPassword: "",
   });
+  
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [passwordStrength, setPasswordStrength] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setForm({ ...form, [name]: value });
-    
-    if (name === "password") {
-      calculatePasswordStrength(value);
-    }
+    setForm(prev => ({ ...prev, [name]: value }));
   };
 
-  const calculatePasswordStrength = (password: string) => {
-    let strength = 0;
-    if (password.length >= 8) strength += 1;
-    if (password.match(/[A-Z]/)) strength += 1;
-    if (password.match(/[0-9]/)) strength += 1;
-    if (password.match(/[^A-Za-z0-9]/)) strength += 1;
-    setPasswordStrength(strength);
+  const shakeForm = () => {
+    if (formRef.current) {
+      formRef.current.classList.add('shake');
+      setTimeout(() => {
+        formRef.current?.classList.remove('shake');
+      }, 500);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+
+    // Validaciones básicas
+    if (form.password !== form.confirmPassword) {
+      setError("Las contraseñas no coinciden");
+      shakeForm();
+      return;
+    }
+
+    if (form.password.length < 6) {
+      setError("La contraseña debe tener al menos 6 caracteres");
+      shakeForm();
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      await api.post("/users", form);
+      // Crear objeto de datos según el DTO del backend
+      const userData = {
+        email: form.email,
+        password: form.password,
+        firstName: form.firstName || undefined,
+        lastName: form.lastName || undefined,
+        username: form.username || undefined,
+        role_id: 2 // Rol por defecto para usuarios normales
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const res = await api.post("/users", userData);
+
+      // Iniciar sesión automáticamente después del registro
+      const loginRes = await api.post("/auth/login", { 
+        email: form.email, 
+        password: form.password 
+      });
       
-      // Mostrar animación de éxito
-      const formElement = document.querySelector(".register-form");
-      const successElement = document.querySelector(".success-message");
-      
-      if (formElement && successElement) {
-        formElement.classList.add("form-success");
-        successElement.classList.add("show-success");
-        
-        setTimeout(() => {
-          navigate("/");
-        }, 2500);
-      }
+      localStorage.setItem("token", loginRes.data.acces_token);
+      localStorage.setItem("user", JSON.stringify(loginRes.data.user));
+
+      // Pequeño retraso para mostrar la animación de carga
+      setTimeout(() => {
+        setIsLoading(false);
+        navigate("/principal");
+      }, 800);
+
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setIsLoading(false);
-      const msg =
-        err.response?.data?.message ||
-        "Error al registrar usuario. Intenta nuevamente.";
-      setError(msg);
 
-      // Animación de error
-      const formElement = document.querySelector(".register-form");
-      if (formElement) {
-        formElement.classList.add("form-error");
-        setTimeout(() => {
-          formElement.classList.remove("form-error");
-        }, 500);
+      // Manejar diferentes tipos de errores
+      if (err.response?.data?.message) {
+        setError(err.response.data.message);
+      } else if (err.response?.status === 409) {
+        setError("El email o nombre de usuario ya está registrado");
+      } else {
+        setError("Error al crear la cuenta. Inténtalo de nuevo.");
       }
+
+      shakeForm();
     }
   };
 
   return (
     <div className="register-page">
-      <div className="animated-background">
-        <div className="shape shape1"></div>
-        <div className="shape shape2"></div>
-        <div className="shape shape3"></div>
-      </div>
-      
       <div className="register-container">
-        <div className="logo-section">
-          <div className="logo">
-            <span className="logo-icon">✓</span>
+        <div className="logo-container">
+          <div className="logo-icon">
+            <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle className="circle-animation" cx="25" cy="25" r="20" stroke="#3498db" strokeWidth="2" />
+              <path className="check-animation" d="M16 25L22 31L34 19" stroke="#3498db" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+              <path className="gear-animation" d="M25 10V14M25 36V40M40 25H36M14 25H10M35.4 14.6L32.5 17.5M17.5 32.5L14.6 35.4M35.4 35.4L32.5 32.5M17.5 17.5L14.6 14.6" stroke="#3498db" strokeWidth="2" strokeLinecap="round" />
+            </svg>
           </div>
-          <h1>Gestor de Tareas</h1>
         </div>
         
-        <div className="register-form-container">
-          <h2>Crear nueva cuenta</h2>
-          
-          <div className="success-message">
-            <div className="success-icon">✓</div>
-            <h3>¡Registro Exitoso!</h3>
-            <p>Redirigiendo al inicio de sesión...</p>
-          </div>
-          
-          {error && <div className="error-banner">{error}</div>}
-          
-          <form className="register-form" onSubmit={handleSubmit}>
-            <div className="form-row">
-              <div className="input-group">
-                <label htmlFor="firstName">Nombre</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={form.firstName}
-                  onChange={handleChange}
-                  placeholder="Tu nombre"
-                  required
-                />
-              </div>
-              
-              <div className="input-group">
-                <label htmlFor="lastName">Apellido</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={form.lastName}
-                  onChange={handleChange}
-                  placeholder="Tu apellido"
-                  required
-                />
-              </div>
-            </div>
-            
+        <h2 className="form-title">Crear Cuenta</h2>
+        
+        <form className="register-form" onSubmit={handleSubmit} ref={formRef}>
+          <div className="form-row">
             <div className="input-group">
-              <label htmlFor="username">Nombre de usuario</label>
-              <div className="input-with-prefix">
-                <span className="input-prefix">@</span>
-                <input
-                  type="text"
-                  id="username"
-                  name="username"
-                  value={form.username}
-                  onChange={handleChange}
-                  placeholder="username"
-                  required
-                />
-              </div>
-            </div>
-            
-            <div className="input-group">
-              <label htmlFor="email">Correo electrónico</label>
+              <label htmlFor="firstName">Nombre</label>
               <input
-                type="email"
-                id="email"
-                name="email"
-                value={form.email}
+                id="firstName"
+                name="firstName"
+                type="text"
+                placeholder="Tu nombre"
+                value={form.firstName}
                 onChange={handleChange}
-                placeholder="ejemplo@correo.com"
-                required
               />
             </div>
             
             <div className="input-group">
-              <label htmlFor="password">Contraseña</label>
+              <label htmlFor="lastName">Apellido</label>
               <input
-                type="password"
-                id="password"
-                name="password"
-                value={form.password}
+                id="lastName"
+                name="lastName"
+                type="text"
+                placeholder="Tu apellido"
+                value={form.lastName}
                 onChange={handleChange}
-                placeholder="••••••••"
-                required
               />
-              <div className="password-strength">
-                <div className="strength-meter">
-                  <div 
-                    className={`strength-value strength-${passwordStrength}`} 
-                    style={{ width: `${passwordStrength * 25}%` }}
-                  ></div>
-                </div>
-                <span className="password-hint">
-                  La contraseña debe tener al menos 8 caracteres
-                </span>
-              </div>
             </div>
-            
-            <button 
-              type="submit" 
-              className="submit-button"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <>
-                  <span className="spinner"></span>
-                  <span>Procesando...</span>
-                </>
-              ) : (
-                "Crear cuenta"
-              )}
-            </button>
-          </form>
-          
-          <div className="login-link">
-            <p>¿Ya tienes cuenta?</p>
-            <button onClick={() => navigate("/")}>Iniciar sesión aquí</button>
           </div>
-        </div>
+          
+          <div className="input-group">
+            <label htmlFor="username">Nombre de usuario</label>
+            <input
+              id="username"
+              name="username"
+              type="text"
+              placeholder="Elige un nombre de usuario único"
+              value={form.username}
+              onChange={handleChange}
+            />
+          </div>
+          
+          <div className="input-group">
+            <label htmlFor="email">Correo Electrónico</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder="tucorreo@ejemplo.com"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="input-group">
+            <label htmlFor="password">Contraseña</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              placeholder="Mínimo 6 caracteres"
+              value={form.password}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <div className="input-group">
+            <label htmlFor="confirmPassword">Confirmar Contraseña</label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              placeholder="Repite tu contraseña"
+              value={form.confirmPassword}
+              onChange={handleChange}
+              required
+            />
+          </div>
+          
+          <button 
+            type="submit" 
+            className={`submit-button ${isLoading ? 'loading' : ''}`}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <span className="spinner"></span>
+            ) : (
+              "Registrarse"
+            )}
+          </button>
+          
+          {error && (
+            <div className="error-message">
+              {error}
+            </div>
+          )}
+        </form>
         
-        <div className="copyright">
-          © 2025 Gestor de Tareas. Todos los derechos reservados.
+        <div className="login-link">
+          ¿Ya tienes una cuenta?{' '}
+          <button 
+            type="button" 
+            className="link-button"
+            onClick={() => navigate("/")}
+          >
+            haga clic aquí
+          </button>
         </div>
       </div>
     </div>
   );
-}
+};
 
 export default RegisterPage;

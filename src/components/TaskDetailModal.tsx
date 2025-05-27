@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import TaskCommentsAttachmentsModal from './TaskCommentsAttachmentsModal';
+
 import api from '../api/axios';
 import { Task, updateTask, deleteTask, getTaskProjectMembers, User, UpdateTaskDto } from '../api/services';
 import './TaskDetailModal.css';
@@ -26,6 +28,7 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   const [editMode, setEditMode] = useState<boolean>(false);
   const [members, setMembers] = useState<User[]>([]);
   const [confirmDelete, setConfirmDelete] = useState<boolean>(false);
+  const [showCommentsModal, setShowCommentsModal] = useState<boolean>(false);
   
   // Estados para edición de campo
   const [editTitle, setEditTitle] = useState<string>('');
@@ -551,22 +554,39 @@ const handleSaveChanges = async () => {
               Eliminar
             </Button>
             <Button 
-              variant="secondary" 
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cerrar
-            </Button>
-            <Button 
               variant="primary" 
               onClick={() => setEditMode(true)}
               disabled={loading}
             >
               Editar
             </Button>
+            <Button 
+              variant="info" 
+              onClick={() => setShowCommentsModal(true)}
+              disabled={loading}
+            >
+              <span>💬</span> Comentarios y Archivos
+            </Button>
+            <Button 
+              variant="secondary" 
+              onClick={onClose}
+              disabled={loading}
+            >
+              Cerrar
+            </Button>
           </>
         )}
       </Modal.Footer>
+
+      {task && (
+        <TaskCommentsAttachmentsModal
+          isOpen={showCommentsModal}
+          onClose={() => setShowCommentsModal(false)}
+          taskId={task.id}
+          taskTitle={task.title}
+          theme="dark"
+        />
+      )}
     </Modal>
   );
 };
