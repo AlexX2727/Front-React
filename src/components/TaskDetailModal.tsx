@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import TaskCommentsAttachmentsModal from './TaskCommentsAttachmentsModal';
 
 import api from '../api/axios';
@@ -93,69 +92,66 @@ const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
     fetchTaskDetails();
   }, [isOpen, taskId, projectMembers]);
   
-  // En TaskDetailModal.tsx - modificar handleSaveChanges
-
-// En TaskDetailModal.tsx - revisa y corrige el handleSaveChanges
-
-const handleSaveChanges = async () => {
-  if (!task) return;
-  
-  try {
-    setLoading(true);
-    setError(null);
+  const handleSaveChanges = async () => {
+    if (!task) return;
     
-    // Obtener usuario del localStorage
-    const storedUser = localStorage.getItem("user");
-    const user = storedUser ? JSON.parse(storedUser) : null;
-    
-    // Preparar datos para actualización - asegurarnos de que son válidos
-    const updateData: UpdateTaskDto = {};
-    
-    // Solo añadir campos que realmente han cambiado
-    if (editTitle !== task.title) updateData.title = editTitle;
-    if (editDescription !== task.description) updateData.description = editDescription || null;
-    if (editStatus !== task.status) updateData.status = editStatus;
-    if (editPriority !== task.priority) updateData.priority = editPriority;
-    if (editDueDate !== task.dueDate) updateData.dueDate = editDueDate || null;
-    if (editAssigneeId !== task.assignee_id) updateData.assignee_id = editAssigneeId;
-    if ((editEstimatedHours || 0) !== (task.estimatedHours || 0)) updateData.estimatedHours = editEstimatedHours;
-    if (editActualHours !== task.actualHours) updateData.actualHours = editActualHours || null;
-    
-    console.log('Usuario actual:', user?.id);
-    console.log('Proyecto de la tarea:', task.project_id);
-    console.log('Datos a actualizar:', updateData);
-    
-    // Verificar si hay datos para actualizar
-    if (Object.keys(updateData).length === 0) {
-      console.log('No hay cambios para guardar');
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Obtener usuario del localStorage
+      const storedUser = localStorage.getItem("user");
+      const user = storedUser ? JSON.parse(storedUser) : null;
+      
+      // Preparar datos para actualización - asegurarnos de que son válidos
+      const updateData: UpdateTaskDto = {};
+      
+      // Solo añadir campos que realmente han cambiado
+      if (editTitle !== task.title) updateData.title = editTitle;
+      if (editDescription !== task.description) updateData.description = editDescription || null;
+      if (editStatus !== task.status) updateData.status = editStatus;
+      if (editPriority !== task.priority) updateData.priority = editPriority;
+      if (editDueDate !== task.dueDate) updateData.dueDate = editDueDate || null;
+      if (editAssigneeId !== task.assignee_id) updateData.assignee_id = editAssigneeId;
+      if ((editEstimatedHours || 0) !== (task.estimatedHours || 0)) updateData.estimatedHours = editEstimatedHours;
+      if (editActualHours !== task.actualHours) updateData.actualHours = editActualHours || null;
+      
+      console.log('Usuario actual:', user?.id);
+      console.log('Proyecto de la tarea:', task.project_id);
+      console.log('Datos a actualizar:', updateData);
+      
+      // Verificar si hay datos para actualizar
+      if (Object.keys(updateData).length === 0) {
+        console.log('No hay cambios para guardar');
+        setEditMode(false);
+        return;
+      }
+      
+      // Actualizar la tarea
+      const updatedTask = await updateTask(task.id, updateData);
+      console.log('Tarea actualizada:', updatedTask);
+      
+      // Actualizar el estado local con los datos actualizados
+      setTask(updatedTask);
+      
+      // Notificar éxito y cerrar edición
       setEditMode(false);
-      return;
+      onEditSuccess();
+      onClose();
+    } catch (err: any) {
+      console.error('Error al guardar cambios:', err);
+      
+      // Mostrar mensaje específico si es error de permisos
+      if (err?.response?.status === 403) {
+        setError('No tienes permisos para editar esta tarea. Solo el propietario del proyecto o miembros pueden editar tareas.');
+      } else {
+        setError(`Error al guardar los cambios: ${err.message}`);
+      }
+    } finally {
+      setLoading(false);
     }
-    
-    // Actualizar la tarea
-    const updatedTask = await updateTask(task.id, updateData);
-    console.log('Tarea actualizada:', updatedTask);
-    
-    // Actualizar el estado local con los datos actualizados
-    setTask(updatedTask);
-    
-    // Notificar éxito y cerrar edición
-    setEditMode(false);
-    onEditSuccess();
-    onClose();
-  } catch (err: any) {
-    console.error('Error al guardar cambios:', err);
-    
-    // Mostrar mensaje específico si es error de permisos
-    if (err?.response?.status === 403) {
-      setError('No tienes permisos para editar esta tarea. Solo el propietario del proyecto o miembros pueden editar tareas.');
-    } else {
-      setError(`Error al guardar los cambios: ${err.message}`);
-    }
-  } finally {
-    setLoading(false);
-  }
-};
+  };
+  
   // Función para eliminar tarea
   const handleDeleteTask = async () => {
     if (!task) return;
@@ -248,335 +244,338 @@ const handleSaveChanges = async () => {
       </option>
     ));
   };
-  
+
+  if (!isOpen) return null;
+
   return (
-    <Modal
-      show={isOpen}
-      onHide={() => {
-        setConfirmDelete(false);
-        setEditMode(false);
-        onClose();
-      }}
-      centered
-      size="lg"
-      className="task-detail-modal"
-    >
-      <Modal.Header closeButton>
-        <Modal.Title>
-          {editMode 
-            ? 'Editar Tarea' 
-            : confirmDelete 
-              ? 'Confirmar Eliminación' 
-              : task ? `Detalles de la tarea: ${task.title}` : 'Detalles de la Tarea'}
-        </Modal.Title>
-      </Modal.Header>
+    <>
+      {/* Backdrop */}
+      <div 
+        className="task-detail-modal-backdrop"
+        onClick={() => {
+          setConfirmDelete(false);
+          setEditMode(false);
+          onClose();
+        }}
+      />
       
-      <Modal.Body>
-        {loading ? (
-          <div className="loading-container">
-            <div className="spinner"></div>
-            <p>Cargando...</p>
+      {/* Modal */}
+      <div className="task-detail-modal dark-theme">
+        <div className="task-detail-modal-dialog">
+          <div className="task-detail-modal-content">
+            {/* Header */}
+            <div className="task-detail-modal-header">
+              <h2 className="task-detail-modal-title">
+                {editMode 
+                  ? 'Editar Tarea' 
+                  : confirmDelete 
+                    ? 'Confirmar Eliminación' 
+                    : task ? `Detalles de la tarea: ${task.title}` : 'Detalles de la Tarea'}
+              </h2>
+              <button 
+                className="task-detail-modal-close"
+                onClick={() => {
+                  setConfirmDelete(false);
+                  setEditMode(false);
+                  onClose();
+                }}
+                disabled={loading}
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* Body */}
+            <div className="task-detail-modal-body">
+              {loading ? (
+                <div className="loading-container">
+                  <div className="spinner-border"></div>
+                  <p>Cargando...</p>
+                </div>
+              ) : error ? (
+                <div className="alert alert-danger">{error}</div>
+              ) : confirmDelete ? (
+                <div className="delete-confirmation">
+                  <p>¿Estás seguro de que deseas eliminar esta tarea?</p>
+                  <p><strong>Título:</strong> {task?.title}</p>
+                  <p>Esta acción no se puede deshacer.</p>
+                </div>
+              ) : task ? (
+                <div className="task-details">
+                  {editMode ? (
+                    // Formulario de edición
+                    <form className="task-edit-form">
+                      <div className="form-group">
+                        <label className="form-label">Título</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          required
+                        />
+                      </div>
+                      
+                      <div className="form-group">
+                        <label className="form-label">Descripción</label>
+                        <textarea
+                          className="form-control"
+                          rows={3}
+                          value={editDescription}
+                          onChange={(e) => setEditDescription(e.target.value)}
+                        />
+                      </div>
+                      
+                      <div className="form-row">
+                        <div className="form-group col-half">
+                          <label className="form-label">Estado</label>
+                          <select
+                            className="form-control"
+                            value={editStatus}
+                            onChange={(e) => setEditStatus(e.target.value)}
+                          >
+                            {renderStatusOptions()}
+                          </select>
+                        </div>
+                        
+                        <div className="form-group col-half">
+                          <label className="form-label">Prioridad</label>
+                          <select
+                            className="form-control"
+                            value={editPriority}
+                            onChange={(e) => setEditPriority(e.target.value)}
+                          >
+                            {renderPriorityOptions()}
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="form-row">
+                        <div className="form-group col-half">
+                          <label className="form-label">Fecha límite</label>
+                          <input
+                            type="date"
+                            className="form-control"
+                            value={formatFecha(editDueDate)}
+                            onChange={(e) => setEditDueDate(e.target.value)}
+                          />
+                        </div>
+                        
+                        <div className="form-group col-half">
+                          <label className="form-label">Asignado a</label>
+                          <select
+                            className="form-control"
+                            value={editAssigneeId || ''}
+                            onChange={(e) => setEditAssigneeId(e.target.value ? Number(e.target.value) : null)}
+                          >
+                            <option value="">Sin asignar</option>
+                            {members.map(member => (
+                              <option key={member.id} value={member.id}>
+                                {member.username || 
+                                 (member.firstName && member.lastName 
+                                   ? `${member.firstName} ${member.lastName}` 
+                                   : member.firstName || member.lastName || `Usuario #${member.id}`)}
+                                {member.role ? ` (${member.role})` : ''}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="form-row">
+                        <div className="form-group col-half">
+                          <label className="form-label">Horas estimadas</label>
+                          <input
+                            type="number"
+                            className="form-control"
+                            min="0"
+                            step="0.5"
+                            value={editEstimatedHours || ''}
+                            onChange={(e) => setEditEstimatedHours(e.target.value ? Number(e.target.value) : null)}
+                          />
+                        </div>
+                        
+                        <div className="form-group col-half">
+                          <label className="form-label">Horas reales</label>
+                          <input
+                            type="text"
+                            className="form-control"
+                            value={editActualHours || ''}
+                            onChange={(e) => setEditActualHours(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                      
+                      <div className="form-group">
+                        <label className="form-label">Proyecto</label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          value={task.project?.name || ''}
+                          disabled
+                        />
+                        <small className="form-text">
+                          No se puede cambiar el proyecto de una tarea existente
+                        </small>
+                      </div>
+                    </form>
+                  ) : (
+                    // Vista de detalles
+                    <div className="task-view">
+                      <div className="detail-item">
+                        <h5>Título</h5>
+                        <p>{task.title}</p>
+                      </div>
+                      
+                      <div className="detail-item">
+                        <h5>Descripción</h5>
+                        <p>{task.description || 'No hay descripción'}</p>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <div className="detail-item col-half">
+                          <h5>Estado</h5>
+                          <span className={`estado-badge ${getEstadoClass(task.status)}`}>
+                            {getEstadoTexto(task.status)}
+                          </span>
+                        </div>
+                        
+                        <div className="detail-item col-half">
+                          <h5>Prioridad</h5>
+                          <span className={`prioridad-badge ${getPrioridadClass(task.priority)}`}>
+                            {getPrioridadTexto(task.priority)}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <div className="detail-item col-half">
+                          <h5>Fecha límite</h5>
+                          <p>{task.dueDate ? formatearFecha(task.dueDate) : 'No definida'}</p>
+                        </div>
+                        
+                        <div className="detail-item col-half">
+                          <h5>Asignado a</h5>
+                          <p>{getAssigneeName(task.assignee_id)}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <div className="detail-item col-half">
+                          <h5>Horas estimadas</h5>
+                          <p>{task.estimatedHours || 'No definidas'}</p>
+                        </div>
+                        
+                        <div className="detail-item col-half">
+                          <h5>Horas reales</h5>
+                          <p>{task.actualHours || 'No registradas'}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="detail-item">
+                        <h5>Proyecto</h5>
+                        <p>{task.project?.name || 'No asignado a proyecto'}</p>
+                      </div>
+                      
+                      <div className="detail-row">
+                        <div className="detail-item col-half">
+                          <h5>Creado</h5>
+                          <p>{formatearFecha(task.createdAt)}</p>
+                        </div>
+                        
+                        <div className="detail-item col-half">
+                          <h5>Última actualización</h5>
+                          <p>{formatearFecha(task.updatedAt)}</p>
+                        </div>
+                      </div>
+                      
+                      {task.completedAt && (
+                        <div className="detail-item">
+                          <h5>Completado</h5>
+                          <p>{formatearFecha(task.completedAt)}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : null}
+            </div>
+            
+            {/* Footer */}
+            <div className="task-detail-modal-footer">
+              {confirmDelete ? (
+                // Botones para confirmación de eliminación
+                <>
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={() => setConfirmDelete(false)}
+                    disabled={loading}
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    className="btn btn-danger"
+                    onClick={handleDeleteTask}
+                    disabled={loading}
+                  >
+                    {loading ? 'Eliminando...' : 'Confirmar Eliminación'}
+                  </button>
+                </>
+              ) : editMode ? (
+                // Botones para modo edición
+                <>
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={() => setEditMode(false)}
+                    disabled={loading}
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={handleSaveChanges}
+                    disabled={loading || !editTitle}
+                  >
+                    {loading ? 'Guardando...' : 'Guardar Cambios'}
+                  </button>
+                </>
+              ) : (
+                // Botones para modo visualización
+                <>
+                  <button 
+                    className="btn btn-danger"
+                    onClick={() => setConfirmDelete(true)}
+                    disabled={loading}
+                  >
+                    Eliminar
+                  </button>
+                  <button 
+                    className="btn btn-primary"
+                    onClick={() => setEditMode(true)}
+                    disabled={loading}
+                  >
+                    Editar
+                  </button>
+                  <button 
+                    className="btn btn-info"
+                    onClick={() => setShowCommentsModal(true)}
+                    disabled={loading}
+                  >
+                    <span>💬</span> Comentarios y Archivos
+                  </button>
+                  <button 
+                    className="btn btn-secondary"
+                    onClick={onClose}
+                    disabled={loading}
+                  >
+                    Cerrar
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-        ) : error ? (
-          <Alert variant="danger">{error}</Alert>
-        ) : confirmDelete ? (
-          <div className="delete-confirmation">
-            <p>¿Estás seguro de que deseas eliminar esta tarea?</p>
-            <p><strong>Título:</strong> {task?.title}</p>
-            <p>Esta acción no se puede deshacer.</p>
-          </div>
-        ) : task ? (
-          <div className="task-details">
-            {editMode ? (
-              // Formulario de edición
-              <Form>
-                <Form.Group className="mb-3">
-                  <Form.Label>Título</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={editTitle}
-                    onChange={(e) => setEditTitle(e.target.value)}
-                    required
-                  />
-                </Form.Group>
-                
-                <Form.Group className="mb-3">
-                  <Form.Label>Descripción</Form.Label>
-                  <Form.Control
-                    as="textarea"
-                    rows={3}
-                    value={editDescription}
-                    onChange={(e) => setEditDescription(e.target.value)}
-                  />
-                </Form.Group>
-                
-                <div className="row">
-                  <div className="col-md-6">
-                    <Form.Group className="mb-3">
-                      <Form.Label>Estado</Form.Label>
-                      <Form.Select
-                        value={editStatus}
-                        onChange={(e) => setEditStatus(e.target.value)}
-                      >
-                        {renderStatusOptions()}
-                      </Form.Select>
-                    </Form.Group>
-                  </div>
-                  
-                  <div className="col-md-6">
-                    <Form.Group className="mb-3">
-                      <Form.Label>Prioridad</Form.Label>
-                      <Form.Select
-                        value={editPriority}
-                        onChange={(e) => setEditPriority(e.target.value)}
-                      >
-                        {renderPriorityOptions()}
-                      </Form.Select>
-                    </Form.Group>
-                  </div>
-                </div>
-                
-                <div className="row">
-                  <div className="col-md-6">
-                    <Form.Group className="mb-3">
-                      <Form.Label>Fecha límite</Form.Label>
-                      <Form.Control
-                        type="date"
-                        value={formatFecha(editDueDate)}
-                        onChange={(e) => setEditDueDate(e.target.value)}
-                      />
-                    </Form.Group>
-                  </div>
-                  
-                  <div className="col-md-6">
-                    <Form.Group className="mb-3">
-                      <Form.Label>Asignado a</Form.Label>
-                      <Form.Select
-                        value={editAssigneeId || ''}
-                        onChange={(e) => setEditAssigneeId(e.target.value ? Number(e.target.value) : null)}
-                      >
-                        <option value="">Sin asignar</option>
-                        {members.map(member => (
-                          <option key={member.id} value={member.id}>
-                            {member.username || 
-                             (member.firstName && member.lastName 
-                               ? `${member.firstName} ${member.lastName}` 
-                               : member.firstName || member.lastName || `Usuario #${member.id}`)}
-                            {member.role ? ` (${member.role})` : ''}
-                          </option>
-                        ))}
-                      </Form.Select>
-                    </Form.Group>
-                  </div>
-                </div>
-                
-                <div className="row">
-                  <div className="col-md-6">
-                    <Form.Group className="mb-3">
-                      <Form.Label>Horas estimadas</Form.Label>
-                      <Form.Control
-                        type="number"
-                        min="0"
-                        step="0.5"
-                        value={editEstimatedHours || ''}
-                        onChange={(e) => setEditEstimatedHours(e.target.value ? Number(e.target.value) : null)}
-                      />
-                    </Form.Group>
-                  </div>
-                  
-                  <div className="col-md-6">
-                    <Form.Group className="mb-3">
-                      <Form.Label>Horas reales</Form.Label>
-                      <Form.Control
-                        type="text"
-                        value={editActualHours || ''}
-                        onChange={(e) => setEditActualHours(e.target.value)}
-                      />
-                    </Form.Group>
-                  </div>
-                </div>
-                
-                <Form.Group className="mb-3">
-                  <Form.Label>Proyecto</Form.Label>
-                  <Form.Control
-                    type="text"
-                    value={task.project?.name || ''}
-                    disabled
-                  />
-                  <Form.Text className="text-muted">
-                    No se puede cambiar el proyecto de una tarea existente
-                  </Form.Text>
-                </Form.Group>
-              </Form>
-            ) : (
-              // Vista de detalles
-              <div>
-                <div className="detail-item">
-                  <h5>Título</h5>
-                  <p>{task.title}</p>
-                </div>
-                
-                <div className="detail-item">
-                  <h5>Descripción</h5>
-                  <p>{task.description || 'No hay descripción'}</p>
-                </div>
-                
-                <div className="row">
-                  <div className="col-md-6">
-                    <div className="detail-item">
-                      <h5>Estado</h5>
-                      <span className={`estado-badge ${getEstadoClass(task.status)}`}>
-                        {getEstadoTexto(task.status)}
-                      </span>
-                    </div>
-                  </div>
-                  
-                  <div className="col-md-6">
-                    <div className="detail-item">
-                      <h5>Prioridad</h5>
-                      <span className={`prioridad-badge ${getPrioridadClass(task.priority)}`}>
-                        {getPrioridadTexto(task.priority)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="row">
-                  <div className="col-md-6">
-                    <div className="detail-item">
-                      <h5>Fecha límite</h5>
-                      <p>{task.dueDate ? formatearFecha(task.dueDate) : 'No definida'}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="col-md-6">
-                    <div className="detail-item">
-                      <h5>Asignado a</h5>
-                      <p>{getAssigneeName(task.assignee_id)}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="row">
-                  <div className="col-md-6">
-                    <div className="detail-item">
-                      <h5>Horas estimadas</h5>
-                      <p>{task.estimatedHours || 'No definidas'}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="col-md-6">
-                    <div className="detail-item">
-                      <h5>Horas reales</h5>
-                      <p>{task.actualHours || 'No registradas'}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="detail-item">
-                  <h5>Proyecto</h5>
-                  <p>{task.project?.name || 'No asignado a proyecto'}</p>
-                </div>
-                
-                <div className="row">
-                  <div className="col-md-6">
-                    <div className="detail-item">
-                      <h5>Creado</h5>
-                      <p>{formatearFecha(task.createdAt)}</p>
-                    </div>
-                  </div>
-                  
-                  <div className="col-md-6">
-                    <div className="detail-item">
-                      <h5>Última actualización</h5>
-                      <p>{formatearFecha(task.updatedAt)}</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {task.completedAt && (
-                  <div className="detail-item">
-                    <h5>Completado</h5>
-                    <p>{formatearFecha(task.completedAt)}</p>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        ) : null}
-      </Modal.Body>
-      
-      <Modal.Footer>
-        {confirmDelete ? (
-          // Botones para confirmación de eliminación
-          <>
-            <Button 
-              variant="secondary" 
-              onClick={() => setConfirmDelete(false)}
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              variant="danger" 
-              onClick={handleDeleteTask}
-              disabled={loading}
-            >
-              {loading ? 'Eliminando...' : 'Confirmar Eliminación'}
-            </Button>
-          </>
-        ) : editMode ? (
-          // Botones para modo edición
-          <>
-            <Button 
-              variant="secondary" 
-              onClick={() => setEditMode(false)}
-              disabled={loading}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              variant="primary" 
-              onClick={handleSaveChanges}
-              disabled={loading || !editTitle}
-            >
-              {loading ? 'Guardando...' : 'Guardar Cambios'}
-            </Button>
-          </>
-        ) : (
-          // Botones para modo visualización
-          <>
-            <Button 
-              variant="danger" 
-              onClick={() => setConfirmDelete(true)}
-              disabled={loading}
-            >
-              Eliminar
-            </Button>
-            <Button 
-              variant="primary" 
-              onClick={() => setEditMode(true)}
-              disabled={loading}
-            >
-              Editar
-            </Button>
-            <Button 
-              variant="info" 
-              onClick={() => setShowCommentsModal(true)}
-              disabled={loading}
-            >
-              <span>💬</span> Comentarios y Archivos
-            </Button>
-            <Button 
-              variant="secondary" 
-              onClick={onClose}
-              disabled={loading}
-            >
-              Cerrar
-            </Button>
-          </>
-        )}
-      </Modal.Footer>
+        </div>
+      </div>
 
       {task && (
         <TaskCommentsAttachmentsModal
@@ -587,7 +586,7 @@ const handleSaveChanges = async () => {
           theme="dark"
         />
       )}
-    </Modal>
+    </>
   );
 };
 

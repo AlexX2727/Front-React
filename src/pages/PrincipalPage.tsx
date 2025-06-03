@@ -15,6 +15,10 @@ import {
   Legend,
 } from 'chart.js';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import TaskListModal from '../components/TaskListModal';
+import CreateTaskModal from '../components/CreateTaskModal';
+import MisProyectosModal from './MisProyectosModal';
+
 
 // Registrar componentes de ChartJS
 ChartJS.register(
@@ -152,7 +156,13 @@ const PrincipalPage: React.FC = () => {
   const [isRefreshingActivity, setIsRefreshingActivity] = useState(false);
   const [isRefreshingTasks, setIsRefreshingTasks] = useState(false);
   
-  // Usuario
+  // Estado para el modal de tareas
+  const [showTaskListModal, setShowTaskListModal] = useState<boolean>(false);
+const [showCreateTaskModal, setShowCreateTaskModal] = useState<boolean>(false);
+const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
+const [showProjectsModal, setShowProjectsModal] = useState<boolean>(false);
+  
+// Usuario
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
   const [userData, setUserData] = useState({ 
@@ -300,9 +310,15 @@ const PrincipalPage: React.FC = () => {
 
   // Funciones de manejo de eventos
   const handleTaskClick = (taskId: number) => {
-    console.log('Clicked task:', taskId);
+    // Solo navegación al modal de tareas, SIN pasar taskId específico
+    setShowTaskListModal(true);
   };
-
+  const handleViewTaskDetails = (taskId: number) => {
+    // Para casos específicos donde quieras ir directo a un detalle
+    setSelectedTaskId(taskId);
+    setShowTaskListModal(true);
+  };
+  
   const handleActivityFilterChange = async () => {
     setIsFilteringActivity(true);
     await new Promise(resolve => setTimeout(resolve, 800));
@@ -337,7 +353,54 @@ const PrincipalPage: React.FC = () => {
     }
   };
 
-  // Funciones de gráficos
+  const openTaskListModal = () => {
+    console.log('🚀 ABRIENDO TaskListModal...');
+    console.log('User:', user);
+    console.log('Estado antes:', showTaskListModal);
+    setShowTaskListModal(true);
+    console.log('Estado después de setState:', true);
+  };
+  
+  const closeTaskListModal = () => {
+    console.log('❌ CERRANDO TaskListModal...');
+    setShowTaskListModal(false);
+    setSelectedTaskId(null);
+  };
+  
+  const openCreateTaskModal = () => {
+    console.log('🚀 ABRIENDO CreateTaskModal...');
+    setShowCreateTaskModal(true);
+  };
+  
+  const closeCreateTaskModal = () => {
+    console.log('❌ CERRANDO CreateTaskModal...');
+    setShowCreateTaskModal(false);
+  };
+  
+  // 4. MEJORAR handleTaskSuccess:
+  const handleTaskSuccess = () => {
+    console.log('Tarea actualizada exitosamente');
+    // Recargar datos del dashboard después de crear/actualizar una tarea
+    loadDashboardData();
+  };
+
+  const openProjectsModal = () => {
+    console.log('🚀 ABRIENDO ProjectsModal...');
+    setShowProjectsModal(true);
+  };
+  
+  const closeProjectsModal = () => {
+    console.log('❌ CERRANDO ProjectsModal...');
+    setShowProjectsModal(false);
+  };
+  
+  const handleCreateProjectClick = () => {
+    // Cerrar el modal de proyectos y navegar a crear proyecto
+    setShowProjectsModal(false);
+    navigate("/crear-proyecto");
+  };
+  
+ 
   // Funciones de gráficos
   const getPriorityChartData = () => {
     if (!dashboardData) return { labels: [], datasets: [] };
@@ -694,6 +757,7 @@ const PrincipalPage: React.FC = () => {
 
   // Efectos
   useEffect(() => {
+    
     const handleResize = () => {
       setIsMobile(window.innerWidth <= 768);
     };
@@ -745,6 +809,15 @@ const PrincipalPage: React.FC = () => {
       handleTaskFilterChange();
     }
   }, [selectedTaskPriorityFilter]);
+
+  useEffect(() => {
+    console.log('Modal states changed:', {
+      showTaskListModal,
+      showCreateTaskModal,
+      selectedTaskId,
+      user: user?.id
+    });
+  }, [showTaskListModal, showCreateTaskModal, selectedTaskId]);
 
   // Renderizar contenido según la sección activa
  // Renderizar contenido según la sección activa
@@ -844,6 +917,7 @@ return (
         </div>
         
         {activeTab === 'dashboard' && (
+
           <div style={styles.filtersRight}>
             <select 
               value={selectedTimeRange} 
@@ -940,6 +1014,54 @@ return (
                 <p style={styles.metricLabel}>Eficiencia</p>
               </div>
             </div>
+            <div style={styles.quickActionsSection}>
+    <div style={styles.quickActionsCard}>
+      <div style={styles.quickActionsHeader}>
+        <div>
+          <h3 style={styles.quickActionsTitle}>🚀 Gestión Rápida de Tareas</h3>
+          <p style={styles.quickActionsSubtitle}>Accede rápidamente a tus tareas y crea nuevas</p>
+        </div>
+      </div>
+      
+      <div style={styles.quickActionsButtons}>
+      <button 
+  style={styles.quickActionBtn}
+  onClick={openTaskListModal}  // <-- Función simplificada
+  className="quick-action-btn"
+>
+          <div style={styles.quickActionIcon}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 11l3 3L22 4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+          </div>
+          <div style={styles.quickActionContent}>
+            <h4 style={styles.quickActionTitle}>Ver Mis Tareas</h4>
+            <p style={styles.quickActionDesc}>Gestiona todas tus tareas asignadas</p>
+            <span style={styles.quickActionCount}>{dashboardData.pendingTasks.count} pendientes</span>
+          </div>
+        </button>
+        
+        <button 
+  style={styles.quickActionBtn}
+  onClick={openCreateTaskModal}  // <-- Función simplificada
+  className="quick-action-btn"
+>
+          <div style={styles.quickActionIcon}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+          </div>
+          <div style={styles.quickActionContent}>
+            <h4 style={styles.quickActionTitle}>Nueva Tarea</h4>
+            <p style={styles.quickActionDesc}>Crea una nueva tarea rápidamente</p>
+            <span style={styles.quickActionCount}>Crear ahora</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
             
            {/* Gráficos principales */}
            <div style={styles.chartsGrid}>
@@ -1383,6 +1505,29 @@ return (
 
   return (
     <div style={styles.container}>
+      {/* MODALES CON DEBUGGING */}
+      {console.log('Rendering modales:', { showTaskListModal, showCreateTaskModal })}
+      
+      <TaskListModal
+        isOpen={showTaskListModal}
+        onClose={closeTaskListModal}
+        theme="dark"
+      />
+  
+      <CreateTaskModal
+        isOpen={showCreateTaskModal}
+        onClose={closeCreateTaskModal}
+        onTaskCreated={() => {
+          handleTaskSuccess();
+          closeCreateTaskModal();
+        }}
+        theme="dark"
+      />
+      <MisProyectosModal
+  isOpen={showProjectsModal}
+  onClose={closeProjectsModal}
+  onCreateProjectClick={handleCreateProjectClick}
+/>
       {/* Botón hamburguesa móvil */}
       {isMobile && (
         <button
@@ -1427,20 +1572,20 @@ return (
               </svg>
               <span>Dashboard</span>
             </button>
-            <button style={styles.menuItem} onClick={() => navigate('/proyectos')}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <button style={styles.menuItem} onClick={openProjectsModal}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
               </svg>
               <span>Proyectos</span>
             </button>
-            <button style={styles.menuItem} onClick={() => navigate('/listartareas')}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M9 11l3 3L22 4"/>
-                <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
-              </svg>
-              <span>Tareas</span>
-              
-            </button>
+            <button style={styles.menuItem} onClick={openTaskListModal}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M9 11l3 3L22 4"/>
+    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+  </svg>
+  <span>Tareas</span>
+</button>
+
           </div>
           
           <div style={styles.menuSection}>
@@ -1510,6 +1655,7 @@ return (
           
           <div style={styles.headerRight}>
             <div style={styles.userProfile} onClick={() => setActiveSection('perfil')}>
+              
               <div style={styles.userAvatar}>
                 <span>{getInitials(userData.firstName, userData.lastName)}</span>
               </div>
@@ -1520,7 +1666,9 @@ return (
                 </div>
               )}
             </div>
+            
           </div>
+          
         </header>
         
         {/* Contenido activo */}
@@ -1980,6 +2128,42 @@ return (
             height: 300px !important;
             width: 100% !important;
           }
+            .quick-action-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+  border-color: rgba(59, 130, 246, 0.4);
+}
+
+.quick-action-btn:hover .quick-action-icon {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+/* Responsive para acciones rápidas */
+@media (max-width: 768px) {
+  .quick-actions-buttons {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  
+  .quick-action-btn {
+    padding: 16px !important;
+    gap: 12px !important;
+  }
+  
+  .quick-action-icon {
+    width: 40px !important;
+    height: 40px !important;
+  }
+  
+  .quick-action-title {
+    font-size: 15px !important;
+  }
+  
+  .quick-action-desc {
+    font-size: 13px !important;
+  }
+}
         }
       `}</style>
     </div>
@@ -2960,6 +3144,101 @@ const styles: { [key: string]: React.CSSProperties } = {
     fontSize: '12px',
     color: '#64748b',
     fontStyle: 'italic'
-  }
+  },
+
+  quickActionsSection: {
+    marginBottom: '32px',
+    width: '100%'
+  },
+  
+  quickActionsCard: {
+    background: 'rgba(15, 23, 42, 0.6)',
+    backdropFilter: 'blur(20px)',
+    border: '1px solid rgba(71, 85, 105, 0.2)',
+    borderRadius: '20px',
+    padding: '24px',
+    width: '100%',
+    boxSizing: 'border-box'
+  },
+  
+  quickActionsHeader: {
+    marginBottom: '24px'
+  },
+  
+  quickActionsTitle: {
+    fontSize: '20px',
+    fontWeight: 600,
+    margin: '0 0 4px',
+    color: '#f8fafc'
+  },
+  
+  quickActionsSubtitle: {
+    color: '#64748b',
+    margin: 0,
+    fontSize: '14px',
+    fontWeight: 500
+  },
+  
+  quickActionsButtons: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+    gap: '20px'
+  },
+  
+  quickActionBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '16px',
+    background: 'rgba(30, 41, 59, 0.8)',
+    border: '1px solid rgba(71, 85, 105, 0.3)',
+    borderRadius: '16px',
+    padding: '20px',
+    cursor: 'pointer',
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    textAlign: 'left',
+    width: '100%',
+    fontFamily: 'inherit'
+  },
+  
+  quickActionIcon: {
+    width: '48px',
+    height: '48px',
+    borderRadius: '12px',
+    background: 'linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'white',
+    flexShrink: 0,
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.3)'
+  },
+  
+  quickActionContent: {
+    flex: 1
+  },
+  
+  quickActionTitle: {
+    fontSize: '16px',
+    fontWeight: 600,
+    margin: '0 0 4px',
+    color: '#f8fafc'
+  },
+  
+  quickActionDesc: {
+    fontSize: '14px',
+    color: '#64748b',
+    margin: '0 0 8px',
+    lineHeight: 1.4
+  },
+  
+  quickActionCount: {
+    fontSize: '12px',
+    fontWeight: 600,
+    color: '#3b82f6',
+    textTransform: 'uppercase',
+    letterSpacing: '0.5px'
+  },
+    
 };
 export default PrincipalPage;
+

@@ -1,12 +1,12 @@
-import './App.css'
-import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/css/bootstrap.min.css'; // PRIMERO Bootstrap
+import './App.css'; // DESPUÉS tus estilos
 
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from './pages/RegisterPage';
 import CrearProyectoPage from './pages/CrearProyectosPage';
 import PrincipalPage from './pages/PrincipalPage';
-import MisProyectosPage from './pages/MisProyectosPage';
+import MisProyectosPage from './pages/MisProyectosModal';
 import AñadirMiembrosPage from './pages/AñadirMiembrosPage';
 import EditarPerfilPage from './pages/EditarPerfilPage';
 import PerfilPage from './pages/PerfilPage';
@@ -16,6 +16,7 @@ import ListaTareasPage from './pages/ListaTareasPage';
 // Importaciones para Toast notifications
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import MisProyectosModal from './pages/MisProyectosModal';
 
 function App() {
   return (
@@ -27,7 +28,7 @@ function App() {
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/crear-proyecto" element={<CrearProyectoPage />} />
                 <Route path='/principal' element={<PrincipalPage />} />
-                <Route path="/mis-proyectos" element={<MisProyectosPage />} />
+                <Route path="/mis-proyectos" element={<MisProyectosModal isOpen={true} onClose={() => {}} />} />
                 <Route path="/añadir-miembro/:projectId" element={<AñadirMiembrosPage />} />
                 <Route path="/editar-perfil" element={<EditarPerfilPage />} />
                 <Route path="/perfil" element={<PerfilPage />} />

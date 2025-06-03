@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { Modal, Button, Form, Tabs, Tab, Alert, Spinner, Card, Badge } from 'react-bootstrap';
 import api from '../api/axios';
 import './TaskCommentsAttachmentsModal.css';
 
@@ -80,6 +79,14 @@ const TaskCommentsAttachmentsModal: React.FC<TaskCommentsAttachmentsModalProps> 
   const [showSuccessMessage, setShowSuccessMessage] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [downloadLoading, setDownloadLoading] = useState<boolean>(false);
+  
+  // Estados para edición y eliminación
+  const [editingCommentId, setEditingCommentId] = useState<number | null>(null);
+  const [editCommentText, setEditCommentText] = useState<string>('');
+  const [deletingCommentId, setDeletingCommentId] = useState<number | null>(null);
+  const [deletingAttachmentId, setDeletingAttachmentId] = useState<number | null>(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
+  const [deleteTarget, setDeleteTarget] = useState<{type: 'comment' | 'attachment', id: number, name?: string} | null>(null);
 
   // Obtener el usuario del localStorage
   const storedUser = localStorage.getItem("user");
@@ -280,7 +287,140 @@ const TaskCommentsAttachmentsModal: React.FC<TaskCommentsAttachmentsModalProps> 
     }
   };
 
-  // Manejar subida de archivo
+  // Manejar edición de comentario
+  const handleEditComment = (comment: Comment) => {
+    setEditingCommentId(comment.id);
+    setEditCommentText(comment.content);
+  };
+
+  // Cancelar edición de comentario
+  const handleCancelEditComment = () => {
+    setEditingCommentId(null);
+    setEditCommentText('');
+  };
+
+  // Guardar comentario editado
+  const handleSaveEditComment = async (commentId: number) => {
+    if (!editCommentText.trim()) return;
+    
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await api.patch(`/comments/${commentId}`, {
+        content: editCommentText.trim()
+      });
+      
+      // Actualizar el comentario en la lista
+      setComments(prevComments => 
+        prevComments.map(comment => 
+          comment.id === commentId 
+            ? { ...comment, content: editCommentText.trim(), updatedAt: response.data.updatedAt || new Date().toISOString() }
+            : comment
+        )
+      );
+      
+      // Resetear estado de edición
+      setEditingCommentId(null);
+      setEditCommentText('');
+      
+      // Mostrar mensaje de éxito
+      setSuccessMessage('Comentario actualizado correctamente');
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 3000);
+    } catch (err) {
+      console.error('Error al editar comentario:', err);
+      setError('Error al editar el comentario. Por favor, inténtalo de nuevo.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Mostrar confirmación de eliminación
+  const showDeleteConfirmation = (type: 'comment' | 'attachment', id: number, name?: string) => {
+    setDeleteTarget({ type, id, name });
+    setShowDeleteConfirm(true);
+  };
+
+  // Cancelar eliminación
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    setDeleteTarget(null);
+  };
+
+  // Confirmar eliminación
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+
+    if (deleteTarget.type === 'comment') {
+      await executeDeleteComment(deleteTarget.id);
+    } else {
+      await executeDeleteAttachment(deleteTarget.id);
+    }
+
+    setShowDeleteConfirm(false);
+    setDeleteTarget(null);
+  };
+
+  // Eliminar comentario (función interna)
+  const executeDeleteComment = async (commentId: number) => {
+    try {
+      setDeletingCommentId(commentId);
+      setError(null);
+      
+      await api.delete(`/comments/${commentId}`);
+      
+      // Remover el comentario de la lista
+      setComments(prevComments => 
+        prevComments.filter(comment => comment.id !== commentId)
+      );
+      
+      // Mostrar mensaje de éxito
+      setSuccessMessage('Comentario eliminado correctamente');
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 3000);
+    } catch (err) {
+      console.error('Error al eliminar comentario:', err);
+      setError('Error al eliminar el comentario. Por favor, inténtalo de nuevo.');
+    } finally {
+      setDeletingCommentId(null);
+    }
+  };
+
+  // Eliminar comentario (función pública)
+  const handleDeleteComment = (commentId: number) => {
+    showDeleteConfirmation('comment', commentId, 'este comentario');
+  };
+
+  // Eliminar archivo adjunto (función interna)
+  const executeDeleteAttachment = async (attachmentId: number) => {
+    try {
+      setDeletingAttachmentId(attachmentId);
+      setError(null);
+      
+      await api.delete(`/comments/attachments/${attachmentId}`);
+      
+      // Remover el archivo de la lista
+      setAttachments(prevAttachments => 
+        prevAttachments.filter(attachment => attachment.id !== attachmentId)
+      );
+      
+      // Mostrar mensaje de éxito
+      setSuccessMessage('Archivo eliminado correctamente');
+      setShowSuccessMessage(true);
+      setTimeout(() => setShowSuccessMessage(false), 3000);
+    } catch (err) {
+      console.error('Error al eliminar archivo:', err);
+      setError('Error al eliminar el archivo. Por favor, inténtalo de nuevo.');
+    } finally {
+      setDeletingAttachmentId(null);
+    }
+  };
+
+  // Eliminar archivo adjunto (función pública)
+  const handleDeleteAttachment = (attachmentId: number, fileName: string) => {
+    showDeleteConfirmation('attachment', attachmentId, fileName);
+  };
   const handleUploadFile = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -434,101 +574,108 @@ const TaskCommentsAttachmentsModal: React.FC<TaskCommentsAttachmentsModalProps> 
 
   // Renderizar tarjeta de archivo adjunto 
   const renderAttachmentCard = (attachment: Attachment) => (
-    <Card key={attachment.id} className={`attachment-card mb-3 ${theme === 'dark' ? 'bg-dark text-light' : ''}`}>
-      <Card.Body className="p-3">
-        <div className="d-flex align-items-center">
-          <div 
-            className="file-icon mr-3"
-            style={{ 
-              fontSize: '24px',
-              marginRight: '15px'
-            }}
-          >
+    <div key={attachment.id} className="attachment-card">
+      <div className="attachment-card-body">
+        <div className="attachment-content">
+          <div className="file-icon">
             {getFileIcon(attachment.mimeType)}
           </div>
-          <div className="attachment-info" style={{ flex: 1 }}>
-            <div className="d-flex justify-content-between align-items-center">
-              <h6 className="mb-0 font-weight-bold" style={{ wordBreak: 'break-word' }}>
+          <div className="attachment-info">
+            <div className="attachment-header">
+              <h6 className="attachment-filename">
                 {attachment.originalName}
               </h6>
-              <Badge 
-                bg={theme === 'dark' ? 'light' : 'secondary'}
-                className="ml-2"
-              >
+              <span className="file-size-badge">
                 {formatFileSize(attachment.size)}
-              </Badge>
+              </span>
             </div>
-            <div className="d-flex justify-content-between align-items-center mt-2">
-              <small className="text-muted">
+            <div className="attachment-footer">
+              <small className="attachment-meta">
                 Subido por {getUserName(attachment.user)} {' '} 
                 {formatDateTime(attachment.createdAt)}
               </small>
-              <div>
+              <div className="attachment-actions">
                 {/* Para PDFs y documentos, el botón Ver ahora llama a la misma función que Descargar */}
                 {attachment.mimeType.includes('pdf') || 
                 attachment.mimeType.includes('word') || 
                 attachment.mimeType.includes('excel') || 
                 attachment.mimeType.includes('msword') || 
                 attachment.mimeType.includes('officedocument') ? (
-                  <Button 
-                    variant={theme === 'dark' ? 'outline-light' : 'outline-primary'} 
-                    size="sm"
-                    className="me-2"
+                  <button 
+                    className="btn btn-outline-primary btn-sm"
                     onClick={() => handleDownloadFile(attachment)}
                     disabled={downloadLoading}
                   >
                     {downloadLoading ? 'Procesando...' : 'Ver / Descargar'}
-                  </Button>
+                  </button>
                 ) : (
                   <>
-                    <Button 
-                      variant={theme === 'dark' ? 'outline-light' : 'outline-primary'} 
-                      size="sm"
-                      className="me-2"
+                    <button 
+                      className="btn btn-outline-primary btn-sm"
                       onClick={() => window.open(attachment.path, '_blank')}
                     >
                       Ver
-                    </Button>
-                    <Button 
-                      variant={theme === 'dark' ? 'outline-success' : 'outline-success'} 
-                      size="sm"
+                    </button>
+                    <button 
+                      className="btn btn-outline-success btn-sm"
                       onClick={() => handleDownloadFile(attachment)}
                       disabled={downloadLoading}
                     >
                       Descargar
-                    </Button>
+                    </button>
                   </>
+                )}
+                
+                {/* Botón de eliminar - solo si es el propietario del archivo o admin */}
+                {(attachment.user_id === userId) && (
+                  <button 
+                    className="btn btn-outline-danger btn-sm"
+                    onClick={() => handleDeleteAttachment(attachment.id, attachment.originalName)}
+                    disabled={deletingAttachmentId === attachment.id}
+                    title="Eliminar archivo"
+                  >
+                    {deletingAttachmentId === attachment.id ? (
+                      <>
+                        <span className="spinner-border spinner-sm"></span>
+                        Eliminando...
+                      </>
+                    ) : (
+                      <>🗑️ Eliminar</>
+                    )}
+                  </button>
                 )}
               </div>
             </div>
           </div>
         </div>
-      </Card.Body>
-    </Card>
+      </div>
+    </div>
   );
 
   // Renderizar contenido basado en la pestaña activa
   const renderTabContent = () => {
     if (loading && !comments.length && !attachments.length) {
       return (
-        <div className="text-center p-4">
-          <Spinner animation="border" variant={theme === 'dark' ? 'light' : 'primary'} />
-          <p className="mt-3">Cargando datos...</p>
+        <div className="loading-container">
+          <div className="spinner-border"></div>
+          <p>Cargando datos...</p>
         </div>
       );
     }
 
     if (error) {
       return (
-        <Alert variant="danger" className="mt-3">
-          <Alert.Heading>Error</Alert.Heading>
-          <p>{error}</p>
-          <div className="d-flex justify-content-end">
-            <Button variant="outline-danger" onClick={loadTaskData}>
-              Reintentar
-            </Button>
+        <div className="alert alert-danger">
+          <div className="alert-header">
+            <h5>Error</h5>
           </div>
-        </Alert>
+          <p>{error}</p>
+          <div className="alert-actions">
+            <button className="btn btn-outline-danger" onClick={loadTaskData}>
+              Reintentar
+            </button>
+          </div>
+        </div>
       );
     }
 
@@ -538,72 +685,118 @@ const TaskCommentsAttachmentsModal: React.FC<TaskCommentsAttachmentsModalProps> 
           {activeTab === 'all' && <h5 className="section-title">Comentarios</h5>}
           
           {!loading && comments.length === 0 ? (
-            <div className="text-center p-3 empty-state">
-              <p className="mb-0">No hay comentarios para esta tarea.</p>
+            <div className="empty-state">
+              <p>No hay comentarios para esta tarea.</p>
             </div>
           ) : (
             <div className="comments-list">
               {comments.map(comment => (
-                <Card key={comment.id} className={`comment-card mb-3 ${theme === 'dark' ? 'bg-dark text-light' : ''}`}>
-                  <Card.Body className="p-3">
-                    <div className="d-flex">
+                <div key={comment.id} className="comment-card">
+                  <div className="comment-card-body">
+                    <div className="comment-content">
                       <div 
-                        className="user-avatar mr-3"
+                        className="user-avatar"
                         style={{ 
-                          backgroundColor: getUserAvatarColor(comment.user.id), 
-                          width: '40px', 
-                          height: '40px',
-                          borderRadius: '50%',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'white',
-                          marginRight: '15px'
+                          backgroundColor: getUserAvatarColor(comment.user.id)
                         }}
                       >
                         {getUserInitials(comment.user)}
                       </div>
-                      <div className="comment-content" style={{ flex: 1 }}>
-                        <div className="d-flex justify-content-between align-items-center mb-2">
-                          <h6 className="mb-0 font-weight-bold">{getUserName(comment.user)}</h6>
-                          <small className="text-muted">{formatDateTime(comment.createdAt)}</small>
+                      <div className="comment-details">
+                        <div className="comment-header">
+                          <h6 className="comment-user">{getUserName(comment.user)}</h6>
+                          <div className="comment-actions">
+                            <small className="comment-date">{formatDateTime(comment.createdAt)}</small>
+                            {comment.user_id === userId && (
+                              <div className="comment-buttons">
+                                {editingCommentId === comment.id ? (
+                                  <>
+                                    <button 
+                                      className="btn btn-sm btn-outline-success"
+                                      onClick={() => handleSaveEditComment(comment.id)}
+                                      disabled={loading || !editCommentText.trim()}
+                                    >
+                                      ✓ Guardar
+                                    </button>
+                                    <button 
+                                      className="btn btn-sm btn-outline-secondary"
+                                      onClick={handleCancelEditComment}
+                                      disabled={loading}
+                                    >
+                                      ✕ Cancelar
+                                    </button>
+                                  </>
+                                ) : (
+                                  <>
+                                    <button 
+                                      className="btn btn-sm btn-outline-primary"
+                                      onClick={() => handleEditComment(comment)}
+                                      disabled={loading}
+                                      title="Editar comentario"
+                                    >
+                                      ✏️
+                                    </button>
+                                    <button 
+                                      className="btn btn-sm btn-outline-danger"
+                                      onClick={() => handleDeleteComment(comment.id)}
+                                      disabled={deletingCommentId === comment.id}
+                                      title="Eliminar comentario"
+                                    >
+                                      {deletingCommentId === comment.id ? (
+                                        <span className="spinner-border spinner-sm"></span>
+                                      ) : '🗑️'}
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <p className="mb-0" style={{ whiteSpace: 'pre-wrap' }}>{comment.content}</p>
+                        {editingCommentId === comment.id ? (
+                          <textarea
+                            className="form-control edit-comment-textarea"
+                            value={editCommentText}
+                            onChange={(e) => setEditCommentText(e.target.value)}
+                            disabled={loading}
+                            rows={3}
+                          />
+                        ) : (
+                          <p className="comment-text">{comment.content}</p>
+                        )}
                       </div>
                     </div>
-                  </Card.Body>
-                </Card>
+                  </div>
+                </div>
               ))}
             </div>
           )}
           
-          <Form onSubmit={handleSubmitComment} className="mt-3">
-            <Form.Group>
-              <Form.Control
-                as="textarea"
+          <form onSubmit={handleSubmitComment} className="comment-form">
+            <div className="form-group">
+              <textarea
+                className="form-control"
                 rows={3}
                 placeholder="Escribe un comentario..."
                 value={newComment}
                 onChange={e => setNewComment(e.target.value)}
                 disabled={loading}
-                className={theme === 'dark' ? 'bg-dark text-light' : ''}
               />
-            </Form.Group>
-            <div className="d-flex justify-content-end mt-2">
-              <Button 
-                variant={theme === 'dark' ? 'light' : 'primary'} 
+            </div>
+            <div className="form-actions">
+              <button 
+                className="btn btn-primary"
                 type="submit" 
                 disabled={!newComment.trim() || loading}
               >
                 {loading ? (
                   <>
-                    <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="mr-2" />
+                    <span className="spinner-border spinner-sm"></span>
                     Enviando...
                   </>
                 ) : 'Enviar comentario'}
-              </Button>
+              </button>
             </div>
-          </Form>
+          </form>
         </div>
       );
     }
@@ -612,8 +805,8 @@ const TaskCommentsAttachmentsModal: React.FC<TaskCommentsAttachmentsModalProps> 
       return (
         <div className="attachments-section">
           {!loading && attachments.length === 0 ? (
-            <div className="text-center p-3 empty-state">
-              <p className="mb-0">No hay archivos adjuntos para esta tarea.</p>
+            <div className="empty-state">
+              <p>No hay archivos adjuntos para esta tarea.</p>
             </div>
           ) : (
             <div className="attachments-list">
@@ -621,45 +814,41 @@ const TaskCommentsAttachmentsModal: React.FC<TaskCommentsAttachmentsModalProps> 
             </div>
           )}
           
-          <Form onSubmit={handleUploadFile} className="mt-3">
-            <Form.Group>
-              <Form.Control
+          <form onSubmit={handleUploadFile} className="upload-form">
+            <div className="form-group">
+              <input
                 type="file"
                 id="fileInput"
+                className="form-control"
                 onChange={handleFileChange}
                 disabled={loading}
-                className={theme === 'dark' ? 'bg-dark text-light' : ''}
               />
               {uploadProgress > 0 && uploadProgress < 100 && (
-                <div className="progress mt-2">
+                <div className="progress">
                   <div 
-                    className="progress-bar" 
-                    role="progressbar" 
-                    style={{ width: `${uploadProgress}%` }} 
-                    aria-valuenow={uploadProgress} 
-                    aria-valuemin={0} 
-                    aria-valuemax={100}
+                    className="progress-bar"
+                    style={{ width: `${uploadProgress}%` }}
                   >
                     {uploadProgress}%
                   </div>
                 </div>
               )}
-            </Form.Group>
-            <div className="d-flex justify-content-end mt-2">
-              <Button 
-                variant={theme === 'dark' ? 'light' : 'primary'} 
+            </div>
+            <div className="form-actions">
+              <button 
+                className="btn btn-primary"
                 type="submit" 
                 disabled={!selectedFile || loading}
               >
                 {loading ? (
                   <>
-                    <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="mr-2" />
+                    <span className="spinner-border spinner-sm"></span>
                     Subiendo...
                   </>
                 ) : 'Subir archivo'}
-              </Button>
+              </button>
             </div>
-          </Form>
+          </form>
         </div>
       );
     }
@@ -667,108 +856,172 @@ const TaskCommentsAttachmentsModal: React.FC<TaskCommentsAttachmentsModalProps> 
     return null;
   };
 
-  const modalClasses = theme === 'dark' ? 'bg-dark text-light' : '';
+  if (!isOpen) return null;
   
   return (
-    <Modal
-      show={isOpen}
-      onHide={onClose}
-      centered
-      size="lg"
-      className={`task-comments-modal ${theme === 'dark' ? 'dark-theme' : ''}`}
-    >
-      <Modal.Header closeButton className={modalClasses}>
-        <Modal.Title>
-          <div className="d-flex align-items-center">
-            <span className="mr-2">💬</span>
-            <span>Comentarios y Archivos - {task?.title || taskTitle}</span>
-          </div>
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body className={modalClasses} style={{ maxHeight: '70vh', overflowY: 'auto' }}>
-        {showSuccessMessage && (
-          <Alert variant="success" className="mb-3">
-            {successMessage}
-          </Alert>
-        )}
-        
-        <Tabs
-          activeKey={activeTab}
-          onSelect={(k) => setActiveTab(k || 'all')}
-          id="comments-attachments-tabs"
-          className="mb-3"
-        >
-          <Tab eventKey="all" title="Todos">
-            {renderTabContent()}
-            {activeTab === 'all' && (
-              <>
-                <h5 className="section-title mt-4">Archivos Adjuntos</h5>
-                {!loading && attachments.length === 0 ? (
-                  <div className="text-center p-3 empty-state">
-                    <p className="mb-0">No hay archivos adjuntos para esta tarea.</p>
-                  </div>
-                ) : (
-                  <div className="attachments-list">
-                    {attachments.map(attachment => renderAttachmentCard(attachment))}
-                  </div>
-                )}
+    <>
+      {/* Backdrop */}
+      <div className="comments-modal-backdrop" onClick={onClose} />
+      
+      {/* Modal */}
+      <div className="comments-modal dark-theme">
+        <div className="comments-modal-dialog">
+          <div className="comments-modal-content">
+            {/* Header */}
+            <div className="comments-modal-header">
+              <div className="comments-modal-title">
+                <span className="title-icon">💬</span>
+                <span>Comentarios y Archivos - {task?.title || taskTitle}</span>
+              </div>
+              <button 
+                className="comments-modal-close"
+                onClick={onClose}
+              >
+                ×
+              </button>
+            </div>
+            
+            {/* Body */}
+            <div className="comments-modal-body">
+              {showSuccessMessage && (
+                <div className="alert alert-success">
+                  {successMessage}
+                </div>
+              )}
+              
+              {/* Tabs */}
+              <div className="tabs-container">
+                <div className="tabs-nav">
+                  <button 
+                    className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('all')}
+                  >
+                    Todos
+                  </button>
+                  <button 
+                    className={`tab-button ${activeTab === 'comments' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('comments')}
+                  >
+                    Comentarios
+                  </button>
+                  <button 
+                    className={`tab-button ${activeTab === 'attachments' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('attachments')}
+                  >
+                    Archivos
+                  </button>
+                </div>
                 
-                <Form onSubmit={handleUploadFile} className="mt-3">
-                  <Form.Group>
-                    <Form.Control
-                      type="file"
-                      id="fileInput"
-                      onChange={handleFileChange}
-                      disabled={loading}
-                      className={theme === 'dark' ? 'bg-dark text-light' : ''}
-                    />
-                    {uploadProgress > 0 && uploadProgress < 100 && (
-                      <div className="progress mt-2">
-                        <div 
-                          className="progress-bar" 
-                          role="progressbar" 
-                          style={{ width: `${uploadProgress}%` }} 
-                          aria-valuenow={uploadProgress} 
-                          aria-valuemin={0} 
-                          aria-valuemax={100}
-                        >
-                          {uploadProgress}%
+                <div className="tab-content">
+                  {renderTabContent()}
+                  {activeTab === 'all' && (
+                    <>
+                      <h5 className="section-title">Archivos Adjuntos</h5>
+                      {!loading && attachments.length === 0 ? (
+                        <div className="empty-state">
+                          <p>No hay archivos adjuntos para esta tarea.</p>
                         </div>
-                      </div>
-                    )}
-                  </Form.Group>
-                  <div className="d-flex justify-content-end mt-2">
-                    <Button 
-                      variant={theme === 'dark' ? 'light' : 'primary'} 
-                      type="submit" 
-                      disabled={!selectedFile || loading}
-                    >
-                      {loading ? (
-                        <>
-                          <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="mr-2" />
-                          Subiendo...
-                        </>
-                      ) : 'Subir archivo'}
-                    </Button>
-                  </div>
-                </Form>
-              </>
-            )}
-          </Tab>
-          <Tab eventKey="comments" title="Comentarios">
-            {renderTabContent()}
-          </Tab>
-          <Tab eventKey="attachments" title="Archivos">
-            {renderTabContent()}
-          </Tab>
-        </Tabs>
-      </Modal.Body>
-      <Modal.Footer className={modalClasses}>
-        <Button variant={theme === 'dark' ? 'outline-light' : 'secondary'} onClick={onClose}>
-          Cerrar
-        </Button>
-      </Modal.Footer>
-    </Modal>
+                      ) : (
+                        <div className="attachments-list">
+                          {attachments.map(attachment => renderAttachmentCard(attachment))}
+                        </div>
+                      )}
+                      
+                      <form onSubmit={handleUploadFile} className="upload-form">
+                        <div className="form-group">
+                          <input
+                            type="file"
+                            id="fileInput"
+                            className="form-control"
+                            onChange={handleFileChange}
+                            disabled={loading}
+                          />
+                          {uploadProgress > 0 && uploadProgress < 100 && (
+                            <div className="progress">
+                              <div 
+                                className="progress-bar"
+                                style={{ width: `${uploadProgress}%` }}
+                              >
+                                {uploadProgress}%
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="form-actions">
+                          <button 
+                            className="btn btn-primary"
+                            type="submit" 
+                            disabled={!selectedFile || loading}
+                          >
+                            {loading ? (
+                              <>
+                                <span className="spinner-border spinner-sm"></span>
+                                Subiendo...
+                              </>
+                            ) : 'Subir archivo'}
+                          </button>
+                        </div>
+                      </form>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="comments-modal-footer">
+              <button className="btn btn-secondary" onClick={onClose}>
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Modal de confirmación personalizado */}
+      {showDeleteConfirm && deleteTarget && (
+        <>
+          <div className="delete-confirm-backdrop" onClick={cancelDelete} />
+          <div className="delete-confirm-modal">
+            <div className="delete-confirm-content">
+              <div className="delete-confirm-header">
+                <h3>Confirmar eliminación</h3>
+              </div>
+              <div className="delete-confirm-body">
+                <p>
+                  ¿Estás seguro de que deseas eliminar{' '}
+                  {deleteTarget.type === 'comment' ? 'este comentario' : `el archivo "${deleteTarget.name}"`}?
+                </p>
+                <p className="delete-warning">Esta acción no se puede deshacer.</p>
+              </div>
+              <div className="delete-confirm-footer">
+                <button 
+                  className="btn btn-secondary"
+                  onClick={cancelDelete}
+                  disabled={deletingCommentId !== null || deletingAttachmentId !== null}
+                >
+                  Cancelar
+                </button>
+                <button 
+                  className="btn btn-danger"
+                  onClick={confirmDelete}
+                  disabled={deletingCommentId !== null || deletingAttachmentId !== null}
+                >
+                  {(deletingCommentId !== null || deletingAttachmentId !== null) ? (
+                    <>
+                      <span className="spinner-border spinner-sm"></span>
+                      Eliminando...
+                    </>
+                  ) : (
+                    'Eliminar'
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 };
 
