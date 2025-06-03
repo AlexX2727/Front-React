@@ -18,6 +18,7 @@ import { Bar, Doughnut, Line } from 'react-chartjs-2';
 import TaskListModal from '../components/TaskListModal';
 import CreateTaskModal from '../components/CreateTaskModal';
 import MisProyectosModal from './MisProyectosModal';
+import CrearProyectoModal from './CrearProyectoModal';
 
 
 // Registrar componentes de ChartJS
@@ -161,7 +162,8 @@ const PrincipalPage: React.FC = () => {
 const [showCreateTaskModal, setShowCreateTaskModal] = useState<boolean>(false);
 const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 const [showProjectsModal, setShowProjectsModal] = useState<boolean>(false);
-  
+const [showCreateProjectModal, setShowCreateProjectModal] = useState<boolean>(false);
+
 // Usuario
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
@@ -395,9 +397,25 @@ const [showProjectsModal, setShowProjectsModal] = useState<boolean>(false);
   };
   
   const handleCreateProjectClick = () => {
-    // Cerrar el modal de proyectos y navegar a crear proyecto
-    setShowProjectsModal(false);
-    navigate("/crear-proyecto");
+    // En lugar de navegar, abrir el modal
+    setShowCreateProjectModal(true);
+  };
+
+  const openCreateProjectModal = () => {
+    console.log('🚀 ABRIENDO CreateProjectModal...');
+    setShowCreateProjectModal(true);
+  };
+  
+  const closeCreateProjectModal = () => {
+    console.log('❌ CERRANDO CreateProjectModal...');
+    setShowCreateProjectModal(false);
+  };
+  
+  const handleProjectCreated = () => {
+    console.log('✅ Proyecto creado exitosamente');
+    // Recargar datos del dashboard para mostrar el nuevo proyecto
+    loadDashboardData();
+    // El modal se cierra automáticamente después del éxito
   };
   
  
@@ -1507,7 +1525,11 @@ return (
     <div style={styles.container}>
       {/* MODALES CON DEBUGGING */}
       {console.log('Rendering modales:', { showTaskListModal, showCreateTaskModal })}
-      
+      <CrearProyectoModal
+  isOpen={showCreateProjectModal}
+  onClose={closeCreateProjectModal}
+  onProjectCreated={handleProjectCreated}
+/>
       <TaskListModal
         isOpen={showTaskListModal}
         onClose={closeTaskListModal}
@@ -1528,6 +1550,7 @@ return (
   onClose={closeProjectsModal}
   onCreateProjectClick={handleCreateProjectClick}
 />
+
       {/* Botón hamburguesa móvil */}
       {isMobile && (
         <button

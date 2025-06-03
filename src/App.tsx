@@ -4,7 +4,7 @@ import './App.css'; // DESPUÉS tus estilos
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from './pages/RegisterPage';
-import CrearProyectoPage from './pages/CrearProyectosPage';
+import CrearProyectoPage from './pages/CrearProyectoModal';
 import PrincipalPage from './pages/PrincipalPage';
 import MisProyectosPage from './pages/MisProyectosModal';
 import AñadirMiembrosPage from './pages/AñadirMiembrosPage';
@@ -17,6 +17,7 @@ import ListaTareasPage from './pages/ListaTareasPage';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import MisProyectosModal from './pages/MisProyectosModal';
+import CrearProyectoModal from './pages/CrearProyectoModal';
 
 function App() {
   return (
@@ -26,7 +27,7 @@ function App() {
         <Route path="/" element={<LoginPage />} />
                 <Route path="/dashboard" element={<h2>Bienvenido al Dashboard</h2>} />
                 <Route path="/register" element={<RegisterPage />} />
-                <Route path="/crear-proyecto" element={<CrearProyectoPage />} />
+                <Route path="/crear-proyecto" element={<CrearProyectoModal isOpen={true} onClose={() => {}} />} />
                 <Route path='/principal' element={<PrincipalPage />} />
                 <Route path="/mis-proyectos" element={<MisProyectosModal isOpen={true} onClose={() => {}} />} />
                 <Route path="/añadir-miembro/:projectId" element={<AñadirMiembrosPage />} />
