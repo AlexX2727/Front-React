@@ -4,7 +4,7 @@ import axios from "axios";
 
 // Configuración adicional para depuración
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:3000", // Puerto donde corre el backend
+  baseURL: "https://backend-vrsl.onrender.com", // Puerto donde corre el backend
   headers: {
     "Content-Type": "application/json",
   }
