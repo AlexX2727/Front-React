@@ -165,6 +165,7 @@ const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 const [showProjectsModal, setShowProjectsModal] = useState<boolean>(false);
 const [showCreateProjectModal, setShowCreateProjectModal] = useState<boolean>(false);
 const [showProjectMembersModal, setShowProjectMembersModal] = useState<boolean>(false);
+const [isRefreshing, setIsRefreshing] = useState(false);
 
 // Usuario
   const storedUser = localStorage.getItem("user");
@@ -403,22 +404,11 @@ const [showProjectMembersModal, setShowProjectMembersModal] = useState<boolean>(
     setShowCreateProjectModal(true);
   };
 
-  const openCreateProjectModal = () => {
-    console.log('🚀 ABRIENDO CreateProjectModal...');
-    setShowCreateProjectModal(true);
-  };
-  
   const closeCreateProjectModal = () => {
     console.log('❌ CERRANDO CreateProjectModal...');
     setShowCreateProjectModal(false);
   };
-  
-  const handleProjectCreated = () => {
-    console.log('✅ Proyecto creado exitosamente');
-    // Recargar datos del dashboard para mostrar el nuevo proyecto
-    loadDashboardData();
-    // El modal se cierra automáticamente después del éxito
-  };
+
   const openProjectMembersModal = () => {
     console.log('🚀 ABRIENDO ProjectMembersModal...');
     setShowProjectMembersModal(true);
@@ -830,7 +820,25 @@ const [showProjectMembersModal, setShowProjectMembersModal] = useState<boolean>(
   }, [navigate, user, currentTime]);
 
   useEffect(() => {
-    loadDashboardData();
+    console.log('🔄 useEffect de carga inicial ejecutándose...');
+    const fetchData = async () => {
+      if (!isLoading && !isRefreshing) {
+        await loadDashboardData();
+      }
+    };
+    fetchData();
+    
+    // Configurar recarga automática cada 5 minutos
+    const intervalId = setInterval(() => {
+      if (!isLoading && !isRefreshing) {
+        loadDashboardData();
+      }
+    }, 5 * 60 * 1000);
+    
+    return () => {
+      console.log('🧹 Limpiando intervalo de recarga...');
+      clearInterval(intervalId);
+    };
   }, []);
 
   useEffect(() => {
@@ -1553,10 +1561,29 @@ return (
       {/* MODALES CON DEBUGGING */}
       {console.log('Rendering modales:', { showTaskListModal, showCreateTaskModal })}
       <CrearProyectoModal
-  isOpen={showCreateProjectModal}
-  onClose={closeCreateProjectModal}
-  onProjectCreated={handleProjectCreated}
-/>
+        key={`create-project-${showCreateProjectModal}`}
+        isOpen={showCreateProjectModal}
+        onClose={closeCreateProjectModal}
+        onSuccess={async (newProject) => {
+          console.log('✅ Proyecto creado exitosamente:', newProject);
+          // Cerrar el modal
+          closeCreateProjectModal();
+          // Esperar un momento para asegurar que la animación de cierre termine
+          await new Promise(resolve => setTimeout(resolve, 300));
+          // Actualizar los datos solo si no hay otra actualización en curso
+          if (!isLoading && !isRefreshing) {
+            console.log('🔄 Actualizando datos después de crear proyecto...');
+            setIsRefreshing(true);
+            try {
+              await loadDashboardData();
+            } catch (error) {
+              console.error('Error al actualizar datos:', error);
+            } finally {
+              setIsRefreshing(false);
+            }
+          }
+        }}
+      />
       <TaskListModal
         isOpen={showTaskListModal}
         onClose={closeTaskListModal}

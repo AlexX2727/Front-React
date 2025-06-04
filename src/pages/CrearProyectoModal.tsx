@@ -2,16 +2,24 @@ import { useState, useEffect } from "react";
 import api from "../api/axios";
 import "./CrearProyectoModal.css";
 
+interface ProjectData {
+  id: string;
+  name: string;
+  description: string;
+  startDate: string;
+  endDate: string;
+}
+
 interface CrearProyectoModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onProjectCreated?: () => void;
+  onSuccess?: (project: ProjectData) => void;
 }
 
 const CrearProyectoModal: React.FC<CrearProyectoModalProps> = ({
   isOpen,
   onClose,
-  onProjectCreated
+  onSuccess
 }) => {
   const user = JSON.parse(localStorage.getItem("user") || "{}");
   const token = localStorage.getItem("token");
@@ -48,15 +56,13 @@ const CrearProyectoModal: React.FC<CrearProyectoModalProps> = ({
   useEffect(() => {
     if (success) {
       const timer = setTimeout(() => {
+        // Solo cerrar el modal, no llamar a onProjectCreated aquí
         onClose();
-        if (onProjectCreated) {
-          onProjectCreated();
-        }
       }, 1500);
       
       return () => clearTimeout(timer);
     }
-  }, [success, onClose, onProjectCreated]);
+  }, [success, onClose]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -76,7 +82,7 @@ const CrearProyectoModal: React.FC<CrearProyectoModalProps> = ({
     setLoading(true);
 
     try {
-      await api.post(
+      const response = await api.post(
         "/projects",
         {
           ...form,
@@ -89,7 +95,28 @@ const CrearProyectoModal: React.FC<CrearProyectoModalProps> = ({
         }
       );
       
-      setSuccess(true);
+      if (response.data) {
+        setSuccess(true);
+        setError('');
+        
+        // Llamar al callback onSuccess con los datos del proyecto creado
+        if (onSuccess) {
+          onSuccess({
+            id: response.data.id,
+            name: form.name,
+            description: form.description,
+            startDate: form.startDate,
+            endDate: form.endDate
+          });
+        }
+        
+        // Cerrar el modal después de 1.5 segundos
+        setTimeout(() => {
+          onClose();
+        }, 1500);
+      } else {
+        setError('Error al crear el proyecto');
+      }
     } catch (err: any) {
       const msg =
         err.response?.data?.message || "Error al crear el proyecto";
