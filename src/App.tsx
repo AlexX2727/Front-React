@@ -9,7 +9,7 @@ import AñadirMiembrosPage from './pages/AñadirMiembrosPage';
 import EditarPerfilPage from './pages/EditProfileModal';
 import PerfilPage from './pages/PerfilPage';
 import TareasPage from './pages/TareasPage';
-import ListaTareasPage from './pages/ListaTareasPage';
+
 
 // Importaciones para Toast notifications
 import { ToastContainer } from 'react-toastify';
@@ -29,7 +29,7 @@ function App() {
                 <Route path="/editar-perfil" element={<EditarPerfilPage isOpen={true} onClose={() => {}} onSuccess={() => {}} />} />
                 <Route path="/perfil" element={<PerfilPage />} />
                 <Route path="/tareas" element={<TareasPage />} />
-                <Route path="/listartareas" element={<ListaTareasPage />} /> 
+            
       </Routes>
       
       {/* Configuración del contenedor de notificaciones Toast */}
