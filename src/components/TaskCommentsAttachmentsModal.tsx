@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
+import { Task } from '../types';
 import './TaskCommentsAttachmentsModal.css';
 
 interface Comment {
@@ -38,9 +39,8 @@ interface Attachment {
   };
 }
 
-interface Task {
-  id: number;
-  title: string;
+// Extend the Task interface to include additional properties if needed
+interface ExtendedTask extends Omit<Task, 'project'> {
   project?: {
     id: number;
     name: string;
@@ -64,12 +64,12 @@ const TaskCommentsAttachmentsModal: React.FC<TaskCommentsAttachmentsModalProps> 
   taskTitle = 'Tarea',
   onCommentAdded,
   onAttachmentAdded,
-  theme = 'dark'
+  // theme = 'dark' // Unused prop
 }) => {
   // Estados
   const [comments, setComments] = useState<Comment[]>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [task, setTask] = useState<Task | null>(null);
+  const [task, setTask] = useState<ExtendedTask | null>(null);
   const [newComment, setNewComment] = useState<string>('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -87,7 +87,7 @@ const TaskCommentsAttachmentsModal: React.FC<TaskCommentsAttachmentsModalProps> 
   const [deletingAttachmentId, setDeletingAttachmentId] = useState<number | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
   const [deleteTarget, setDeleteTarget] = useState<{type: 'comment' | 'attachment', id: number, name?: string} | null>(null);
-
+  
   // Obtener el usuario del localStorage
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
@@ -201,42 +201,20 @@ const TaskCommentsAttachmentsModal: React.FC<TaskCommentsAttachmentsModalProps> 
   const getDownloadUrl = (url: string, attachment: Attachment): string => {
     if (!url) return '';
     
-    // Extraer extensión del archivo del nombre original
-    const fileExtension = attachment.originalName.split('.').pop() || '';
-    
-    // Para las URLs de Cloudinary raw
+    // For Cloudinary raw URLs
     if (url.includes('cloudinary.com/') && url.includes('/raw/upload/')) {
-      // Las URLs de tipo raw pueden requerir ajustes especiales
+      // Raw URLs might need special handling
       return url;
     }
     
-    // Para las URLs de Cloudinary normales (imágenes, etc.)
+    // For regular Cloudinary URLs (images, etc.)
     if (url.includes('cloudinary.com/')) {
       const separator = url.includes('?') ? '&' : '?';
-      // Forzar la descarga con el nombre de archivo original
+      // Force download with original filename
       return `${url}${separator}fl_attachment=true&attachment=${encodeURIComponent(attachment.originalName)}`;
     }
     
     return url;
-  };
-
-  // Método mejorado para ver archivos
-  const handleFileView = (attachment: Attachment) => {
-    // Para archivos PDF y documentos
-    if (
-      attachment.mimeType.includes('pdf') ||
-      attachment.mimeType.includes('word') ||
-      attachment.mimeType.includes('excel') ||
-      attachment.mimeType.includes('powerpoint') ||
-      attachment.mimeType.includes('msword') ||
-      attachment.mimeType.includes('officedocument')
-    ) {
-      // En lugar de abrir en una nueva ventana, descargamos el archivo
-      handleDownloadFile(attachment);
-    } else {
-      // Para imágenes y otros archivos que se pueden visualizar
-      window.open(attachment.path, '_blank');
-    }
   };
 
   // Método mejorado para forzar la descarga

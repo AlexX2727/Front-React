@@ -55,16 +55,14 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const [success, setSuccess] = useState<string | null>(null);
   
   // Estado del formulario
-  const [taskForm, setTaskForm] = useState<CreateTaskDto>({
+  const [taskForm, setTaskForm] = useState<Omit<CreateTaskDto, 'title' | 'project_id'> & { 
+    title: string; 
+    project_id: number;
+  }>({
     project_id: 0,
     title: '',
-    description: '',
     status: 'Todo',
     priority: 'Medium',
-    dueDate: '',
-    estimatedHours: '',
-    actualHours: null,
-    assignee_id: undefined
   });
 
   console.log('CreateTaskModal render:', { isOpen, userId });
@@ -139,17 +137,21 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
 
-    if (name === 'assignee_id') {
-      setTaskForm(prev => ({
+    setTaskForm(prev => {
+      const newValue = (() => {
+        if (name === 'assignee_id') {
+          return value === '' ? undefined : Number(value);
+        } else if (type === 'number') {
+          return value === '' ? undefined : parseFloat(value);
+        }
+        return value === '' ? undefined : value;
+      })();
+
+      return {
         ...prev,
-        assignee_id: value === '' ? undefined : Number(value),
-      }));
-    } else {
-      setTaskForm(prev => ({
-        ...prev,
-        [name]: type === 'number' ? parseFloat(value) : value,
-      }));
-    }
+        [name]: newValue
+      };
+    });
   };
 
   // Validar el formulario
@@ -259,9 +261,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     if (!member.user) return 'Usuario desconocido';
     
     if (member.user.username) return member.user.username;
-    if (member.user.firstName && member.user.lastName) 
-      return `${member.user.firstName} ${member.user.lastName}`;
-    return member.user.firstName || member.user.lastName || `Usuario #${member.user.id}`;
+    return member.user.fullName || `Usuario #${member.user.id}`;
   };
 
   // Limpiar mensajes después de 5 segundos

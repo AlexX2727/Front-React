@@ -5,11 +5,25 @@ import TaskDetailModal from './TaskDetailModal'; // Importar el modal de detalle
 import { 
   getProjectsByOwner, 
   Project,
-  Task,
+  Task as TaskType,
   User,
   getTasksWithFilters,
   getTaskProjectMembers 
 } from '../api/services';
+
+// Extend the Task interface to include project and assignee details
+interface Task extends Omit<TaskType, 'assignee' | 'project'> {
+  project?: {
+    id: number;
+    name: string;
+  };
+  assignee?: {
+    id: number;
+    username: string;
+    email: string;
+    fullName: string;
+  };
+}
 
 interface TaskListModalProps {
   isOpen: boolean;
@@ -20,7 +34,7 @@ interface TaskListModalProps {
 const TaskListModal: React.FC<TaskListModalProps> = ({
   isOpen,
   onClose,
-  theme = 'dark'
+  // theme = 'dark' // Unused prop
 }) => {
   // Estados básicos
   const storedUser = localStorage.getItem("user");

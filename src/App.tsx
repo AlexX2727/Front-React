@@ -4,9 +4,7 @@ import './App.css'; // DESPUÉS tus estilos
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from './pages/RegisterPage';
-import CrearProyectoPage from './pages/CrearProyectoModal';
 import PrincipalPage from './pages/PrincipalPage';
-import MisProyectosPage from './pages/MisProyectosModal';
 import AñadirMiembrosPage from './pages/AñadirMiembrosPage';
 import EditarPerfilPage from './pages/EditProfileModal';
 import PerfilPage from './pages/PerfilPage';
@@ -16,8 +14,7 @@ import ListaTareasPage from './pages/ListaTareasPage';
 // Importaciones para Toast notifications
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import MisProyectosModal from './pages/MisProyectosModal';
-import CrearProyectoModal from './pages/CrearProyectoModal';
+// Rutas modales manejadas dentro de los componentes
 
 function App() {
   return (
@@ -27,9 +24,7 @@ function App() {
         <Route path="/" element={<LoginPage />} />
                 <Route path="/dashboard" element={<h2>Bienvenido al Dashboard</h2>} />
                 <Route path="/register" element={<RegisterPage />} />
-                <Route path="/crear-proyecto" element={<CrearProyectoModal isOpen={true} onClose={() => {}} />} />
-                <Route path='/principal' element={<PrincipalPage />} />
-                <Route path="/mis-proyectos" element={<MisProyectosModal isOpen={true} onClose={() => {}} />} />
+                <Route path="/principal" element={<PrincipalPage />} />
                 <Route path="/añadir-miembro/:projectId" element={<AñadirMiembrosPage />} />
                 <Route path="/editar-perfil" element={<EditarPerfilPage isOpen={true} onClose={() => {}} onSuccess={() => {}} />} />
                 <Route path="/perfil" element={<PerfilPage />} />

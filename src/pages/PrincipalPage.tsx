@@ -180,6 +180,23 @@ const [isRefreshing, setIsRefreshing] = useState(false);
     { id: 'all', name: 'Todos los proyectos' }
   ]);
 
+  // Cargar datos del dashboard al montar el componente
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        await loadDashboardData();
+      } catch (error) {
+        console.error('Error al cargar los datos del dashboard:', error);
+        setError('Error al cargar los datos. Por favor, inténtalo de nuevo.');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
   // Obtener la fecha actual
   const today = new Date();
   const dateString = today.toLocaleDateString('es-ES', { 
