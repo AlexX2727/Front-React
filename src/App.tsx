@@ -8,7 +8,7 @@ import CrearProyectoPage from './pages/CrearProyectoModal';
 import PrincipalPage from './pages/PrincipalPage';
 import MisProyectosPage from './pages/MisProyectosModal';
 import AñadirMiembrosPage from './pages/AñadirMiembrosPage';
-import EditarPerfilPage from './pages/EditarPerfilPage';
+import EditarPerfilPage from './pages/EditProfileModal';
 import PerfilPage from './pages/PerfilPage';
 import TareasPage from './pages/TareasPage';
 import ListaTareasPage from './pages/ListaTareasPage';
@@ -31,7 +31,7 @@ function App() {
                 <Route path='/principal' element={<PrincipalPage />} />
                 <Route path="/mis-proyectos" element={<MisProyectosModal isOpen={true} onClose={() => {}} />} />
                 <Route path="/añadir-miembro/:projectId" element={<AñadirMiembrosPage />} />
-                <Route path="/editar-perfil" element={<EditarPerfilPage />} />
+                <Route path="/editar-perfil" element={<EditarPerfilPage isOpen={true} onClose={() => {}} onSuccess={() => {}} />} />
                 <Route path="/perfil" element={<PerfilPage />} />
                 <Route path="/tareas" element={<TareasPage />} />
                 <Route path="/listartareas" element={<ListaTareasPage />} /> 
