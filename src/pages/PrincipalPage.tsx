@@ -19,6 +19,7 @@ import TaskListModal from '../components/TaskListModal';
 import CreateTaskModal from '../components/CreateTaskModal';
 import MisProyectosModal from './MisProyectosModal';
 import CrearProyectoModal from './CrearProyectoModal';
+import ProjectMembersModal from '../components/ProjectMembersModal';
 
 
 // Registrar componentes de ChartJS
@@ -163,6 +164,7 @@ const [showCreateTaskModal, setShowCreateTaskModal] = useState<boolean>(false);
 const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
 const [showProjectsModal, setShowProjectsModal] = useState<boolean>(false);
 const [showCreateProjectModal, setShowCreateProjectModal] = useState<boolean>(false);
+const [showProjectMembersModal, setShowProjectMembersModal] = useState<boolean>(false);
 
 // Usuario
   const storedUser = localStorage.getItem("user");
@@ -416,6 +418,21 @@ const [showCreateProjectModal, setShowCreateProjectModal] = useState<boolean>(fa
     // Recargar datos del dashboard para mostrar el nuevo proyecto
     loadDashboardData();
     // El modal se cierra automáticamente después del éxito
+  };
+  const openProjectMembersModal = () => {
+    console.log('🚀 ABRIENDO ProjectMembersModal...');
+    setShowProjectMembersModal(true);
+  };
+  
+  const closeProjectMembersModal = () => {
+    console.log('❌ CERRANDO ProjectMembersModal...');
+    setShowProjectMembersModal(false);
+  };
+  
+  const handleMemberSuccess = () => {
+    console.log('✅ Miembro actualizado exitosamente');
+    // Recargar datos del dashboard si es necesario
+    loadDashboardData();
   };
   
  
@@ -836,6 +853,16 @@ const [showCreateProjectModal, setShowCreateProjectModal] = useState<boolean>(fa
       user: user?.id
     });
   }, [showTaskListModal, showCreateTaskModal, selectedTaskId]);
+  // En PrincipalPage, agrega esto después de los otros useEffect
+useEffect(() => {
+  console.log('📊 Estado modales:', {
+    showProjectMembersModal,
+    showTaskListModal,
+    showCreateTaskModal,
+    showProjectsModal,
+    showCreateProjectModal
+  });
+}, [showProjectMembersModal, showTaskListModal, showCreateTaskModal, showProjectsModal, showCreateProjectModal]);
 
   // Renderizar contenido según la sección activa
  // Renderizar contenido según la sección activa
@@ -1545,11 +1572,17 @@ return (
         }}
         theme="dark"
       />
+      
       <MisProyectosModal
   isOpen={showProjectsModal}
   onClose={closeProjectsModal}
   onCreateProjectClick={handleCreateProjectClick}
 />
+<ProjectMembersModal
+      isOpen={showProjectMembersModal}
+      onClose={closeProjectMembersModal}
+      onSuccess={handleMemberSuccess}
+    />
 
       {/* Botón hamburguesa móvil */}
       {isMobile && (
@@ -1613,15 +1646,15 @@ return (
           
           <div style={styles.menuSection}>
             <span style={styles.sectionTitle}>Colaboración</span>
-            <button style={styles.menuItem}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="9" cy="7" r="4"/>
-                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-              </svg>
-              <span>Equipo</span>
-            </button>
+            <button style={styles.menuItem} onClick={openProjectMembersModal}>
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+    <circle cx="9" cy="7" r="4"/>
+    <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+    <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+  </svg>
+  <span>Equipo</span>
+</button>
             <button 
               style={{
                 ...styles.menuItem,

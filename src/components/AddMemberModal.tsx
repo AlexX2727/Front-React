@@ -1,6 +1,6 @@
 import { useState } from "react";
 import api from "../api/axios";
-import "./AddMemberModal.css"; // Asegúrate de importar el CSS
+import "./AddMemberModal.css";
 
 interface AddMemberModalProps {
   projectId: number;
@@ -22,17 +22,15 @@ function AddMemberModal({ projectId, onClose, onSuccess }: AddMemberModalProps) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [activeField, setActiveField] = useState("");
 
-  // Evitar que los clics dentro del modal se propaguen al overlay
-  const handleModalClick = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  // Manejar focus de campos
+  const handleFocus = (fieldName: string) => {
+    setActiveField(fieldName);
   };
 
-  // Manejar tecla Escape para cerrar modal
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Escape") {
-      onClose();
-    }
+  const handleBlur = () => {
+    setActiveField("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,7 +69,6 @@ function AddMemberModal({ projectId, onClose, onSuccess }: AddMemberModalProps) 
         onSuccess();
         onClose();
       }, 1500);
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.response?.data?.message || "Error al agregar miembro");
     } finally {
@@ -80,71 +77,132 @@ function AddMemberModal({ projectId, onClose, onSuccess }: AddMemberModalProps) 
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose} onKeyDown={handleKeyDown}>
-      <div className="modal-container" onClick={handleModalClick}>
-        <div className="modal-header">
-          <h3 className="modal-title">Añadir Miembro al Proyecto</h3>
-          <button className="modal-close" onClick={onClose}>&times;</button>
-        </div>
-
-        <div className="modal-body">
-          <form onSubmit={handleSubmit} className="add-member-form">
-            <div className="form-group">
-              <label htmlFor="userIdentifier">Correo electrónico o nombre de usuario:</label>
-              <input
-                id="userIdentifier"
-                type="text"
-                value={userIdentifier}
-                onChange={(e) => setUserIdentifier(e.target.value)}
-                placeholder="ej. juan@email.com o juan123"
-                autoFocus
-              />
+    <>
+      {/* Backdrop */}
+      <div className="add-member-modal-backdrop" onClick={onClose} />
+      
+      {/* Modal */}
+      <div className="add-member-modal dark-theme">
+        <div className="add-member-modal-dialog">
+          <div className="add-member-modal-content">
+            {/* Header */}
+            <div className="add-member-modal-header">
+              <div className="header-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <line x1="19" y1="8" x2="19" y2="14"/>
+                  <line x1="22" y1="11" x2="16" y2="11"/>
+                </svg>
+              </div>
+              <h3 className="add-member-modal-title">Añadir Miembro al Proyecto</h3>
+              <button className="add-member-modal-close" onClick={onClose}>
+                ×
+              </button>
             </div>
 
-            <div className="form-group">
-              <label htmlFor="role">Rol:</label>
-              <select
-                id="role"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-              >
-                {roles.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
+            {/* Body */}
+            <div className="add-member-modal-body">
+              {success ? (
+                <div className="success-container">
+                  <div className="success-icon">✓</div>
+                  <h4>¡Miembro agregado exitosamente!</h4>
+                  <p>El miembro se ha añadido al proyecto correctamente.</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="add-member-form">
+                  <div className={`form-group ${activeField === 'userIdentifier' ? 'active' : ''}`}>
+                    <label htmlFor="userIdentifier">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                      </svg>
+                      Correo electrónico o nombre de usuario *
+                    </label>
+                    <input
+                      id="userIdentifier"
+                      type="text"
+                      className="form-control"
+                      value={userIdentifier}
+                      onChange={(e) => setUserIdentifier(e.target.value)}
+                      onFocus={() => handleFocus('userIdentifier')}
+                      onBlur={handleBlur}
+                      placeholder="ej. juan@email.com o juan123"
+                      required
+                    />
+                    <div className="input-highlight"></div>
+                  </div>
+
+                  <div className={`form-group ${activeField === 'role' ? 'active' : ''}`}>
+                    <label htmlFor="role">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                        <circle cx="9" cy="7" r="4"/>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                      </svg>
+                      Rol en el proyecto
+                    </label>
+                    <select
+                      id="role"
+                      className="form-control"
+                      value={role}
+                      onChange={(e) => setRole(e.target.value)}
+                      onFocus={() => handleFocus('role')}
+                      onBlur={handleBlur}
+                    >
+                      {roles.map((r) => (
+                        <option key={r.value} value={r.value}>
+                          {r.label}
+                        </option>
+                      ))}
+                    </select>
+                    <div className="input-highlight"></div>
+                  </div>
+
+                  {error && (
+                    <div className="alert alert-danger">
+                      <div className="alert-icon">⚠️</div>
+                      <span>{error}</span>
+                    </div>
+                  )}
+                </form>
+              )}
             </div>
 
-            {error && <div className="message error-message">{error}</div>}
-            {success && (
-              <div className="message success-message">
-                <span>✓</span> {success}
+            {/* Footer */}
+            {!success && (
+              <div className="add-member-modal-footer">
+                <button 
+                  type="button" 
+                  className="btn btn-secondary" 
+                  onClick={onClose}
+                  disabled={loading}
+                >
+                  Cancelar
+                </button>
+                
+                <button 
+                  type="submit" 
+                  className="btn btn-primary" 
+                  onClick={handleSubmit} 
+                  disabled={loading || !userIdentifier.trim()}
+                >
+                  {loading ? (
+                    <>
+                      <span className="spinner-border spinner-sm"></span>
+                      Añadiendo...
+                    </>
+                  ) : (
+                    'Añadir Miembro'
+                  )}
+                </button>
               </div>
             )}
-          </form>
-        </div>
-
-        <div className="modal-footer">
-          <button 
-            type="button" 
-            className="btn btn-secondary" 
-            onClick={onClose}
-          >
-            Cancelar
-          </button>
-          
-          <button 
-            type="button" 
-            className="btn btn-primary" 
-            onClick={handleSubmit} 
-            disabled={loading}
-          >
-            {loading ? "Añadiendo..." : "Añadir Miembro"}
-          </button>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
