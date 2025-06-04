@@ -71,8 +71,8 @@ const RegisterPage: React.FC = () => {
         role_id: 2 // Rol por defecto para usuarios normales
       };
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const res = await api.post("/users", userData);
+      // Registrar al usuario
+      await api.post("/users", userData);
 
       // Iniciar sesión automáticamente después del registro
       const loginRes = await api.post("/auth/login", { 

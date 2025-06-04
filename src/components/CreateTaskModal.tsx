@@ -8,18 +8,8 @@ import {
   ProjectMember
 } from '../api/services';
 
-interface CreateTaskDto {
-  project_id: number;
-  title: string;
-  description?: string;
-  status?: 'Todo' | 'In Progress' | 'Review' | 'Done' | 'Blocked';
-  priority?: 'Low' | 'Medium' | 'High' | 'Critical';
-  dueDate?: string;
-  estimatedHours?: number;
-  assignee_id?: number;
-  actualHours?: number;
-  completedAt?: string;
-}
+// Usar la interfaz del servicio en lugar de definirla localmente
+import { CreateTaskDto } from '../api/services';
 
 interface CreateTaskModalProps {
   isOpen: boolean;
@@ -33,8 +23,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   isOpen,
   onClose,
   onTaskCreated,
-  preselectedProjectId = null,
-  theme = 'dark'
+  preselectedProjectId = null
 }) => {
   // Obtener usuario del localStorage
   const storedUser = localStorage.getItem("user");
@@ -55,14 +44,26 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   const [success, setSuccess] = useState<string | null>(null);
   
   // Estado del formulario
-  const [taskForm, setTaskForm] = useState<Omit<CreateTaskDto, 'title' | 'project_id'> & { 
-    title: string; 
+  const [taskForm, setTaskForm] = useState<{
     project_id: number;
+    title: string;
+    description?: string | null;
+    status: 'Todo' | 'In Progress' | 'Review' | 'Done' | 'Blocked';
+    priority: 'Low' | 'Medium' | 'High' | 'Critical';
+    dueDate?: string | null;
+    estimatedHours?: number | null;
+    actualHours?: string | null;
+    assignee_id?: number | null;
   }>({
-    project_id: 0,
+    project_id: preselectedProjectId || 0,
     title: '',
+    description: null,
     status: 'Todo',
     priority: 'Medium',
+    dueDate: null,
+    estimatedHours: null,
+    actualHours: null,
+    assignee_id: null,
   });
 
   console.log('CreateTaskModal render:', { isOpen, userId });
@@ -135,22 +136,38 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
 
   // Manejar cambios en el formulario
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
+    const { name, value } = e.target;
 
     setTaskForm(prev => {
-      const newValue = (() => {
-        if (name === 'assignee_id') {
-          return value === '' ? undefined : Number(value);
-        } else if (type === 'number') {
-          return value === '' ? undefined : parseFloat(value);
-        }
-        return value === '' ? undefined : value;
-      })();
-
-      return {
-        ...prev,
-        [name]: newValue
-      };
+      // Manejar tipos específicos para cada campo
+      switch (name) {
+        case 'assignee_id':
+          return {
+            ...prev,
+            assignee_id: value === '' ? null : Number(value)
+          };
+        case 'estimatedHours':
+          return {
+            ...prev,
+            estimatedHours: value === '' ? null : Number(value)
+          };
+        case 'actualHours':
+          return {
+            ...prev,
+            actualHours: value === '' ? null : value
+          };
+        case 'dueDate':
+          return {
+            ...prev,
+            dueDate: value === '' ? null : value
+          };
+        default:
+          // Para otros campos de texto
+          return {
+            ...prev,
+            [name]: value === '' ? undefined : value
+          };
+      }
     });
   };
 
@@ -200,13 +217,13 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
       const formData: CreateTaskDto = {
         project_id: projectId,
         title: taskForm.title.trim(),
-        description: taskForm.description?.trim() || undefined,
+        description: taskForm.description?.trim() || null,
         status: taskForm.status,
         priority: taskForm.priority,
-        dueDate: taskForm.dueDate || undefined,
-        estimatedHours: taskForm.estimatedHours ? String(taskForm.estimatedHours) : undefined,
-        actualHours: taskForm.actualHours ? String(taskForm.actualHours) : null,
-        assignee_id: taskForm.assignee_id,
+        dueDate: taskForm.dueDate || null,
+        estimatedHours: taskForm.estimatedHours ? Number(taskForm.estimatedHours) : null,
+        actualHours: taskForm.actualHours ? taskForm.actualHours.toString() : null,
+        assignee_id: taskForm.assignee_id || null,
       };
 
       await createTask(formData);
@@ -454,7 +471,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                     min="0"
                     max="1000"
                     step="0.5"
-                    value={taskForm.estimatedHours || ''}
+                    value={taskForm.estimatedHours?.toString() || ''}
                     onChange={handleFormChange}
                     placeholder="0"
                     disabled={submitting}
@@ -468,7 +485,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
                 <label style={labelStyles}>Asignar a</label>
                 <select
                   name="assignee_id"
-                  value={taskForm.assignee_id === undefined ? '' : taskForm.assignee_id}
+                  value={taskForm.assignee_id?.toString() || ''}
                   onChange={handleFormChange}
                   disabled={submitting || loadingMembers}
                   style={selectStyles}

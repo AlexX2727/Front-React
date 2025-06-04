@@ -144,12 +144,11 @@ const PrincipalPage: React.FC = () => {
   
   // Sistema de tabs
   const [activeTab, setActiveTab] = useState('dashboard');
-  
+  const [selectedActivityFilter, setSelectedActivityFilter] = useState('all');
+
   // Variables para filtros
   const [selectedTimeRange, setSelectedTimeRange] = useState('7d');
   const [selectedProject, setSelectedProject] = useState('all');
-  const [selectedPriority, setSelectedPriority] = useState('all');
-  const [selectedActivityFilter, setSelectedActivityFilter] = useState('all');
   const [selectedTaskPriorityFilter, setSelectedTaskPriorityFilter] = useState('all');
   
   // Estados de carga para filtros
@@ -170,7 +169,7 @@ const [isRefreshing, setIsRefreshing] = useState(false);
 // Usuario
   const storedUser = localStorage.getItem("user");
   const user = storedUser ? JSON.parse(storedUser) : null;
-  const [userData, setUserData] = useState({ 
+  const [userData] = useState({
     firstName: user?.firstName || 'Usuario', 
     lastName: user?.lastName || 'Desconocido' 
   });
@@ -207,7 +206,7 @@ const [isRefreshing, setIsRefreshing] = useState(false);
   });
 
   // Funciones de utilidad
-  const getInitials = (firstName?: string, lastName?: string): string => {
+  const getInitials = (firstName?: string | null, lastName?: string | null): string => {
     return `${firstName ? firstName[0] : ''}${lastName ? lastName[0] : ''}`;
   };
 
@@ -331,15 +330,11 @@ const [isRefreshing, setIsRefreshing] = useState(false);
   };
 
   // Funciones de manejo de eventos
-  const handleTaskClick = (taskId: number) => {
+  const handleTaskClick = () => {
     // Solo navegación al modal de tareas, SIN pasar taskId específico
     setShowTaskListModal(true);
   };
-  const handleViewTaskDetails = (taskId: number) => {
-    // Para casos específicos donde quieras ir directo a un detalle
-    setSelectedTaskId(taskId);
-    setShowTaskListModal(true);
-  };
+ 
   
   const handleActivityFilterChange = async () => {
     setIsFilteringActivity(true);
@@ -600,11 +595,11 @@ const [isRefreshing, setIsRefreshing] = useState(false);
     },
     interaction: {
       intersect: false,
-      mode: 'index'
+      mode: 'index' as const
     },
     animation: {
       duration: 1000,
-      easing: 'easeInOutQuart'
+      easing: 'easeInOutQuart' as const
     }
   };
 
@@ -614,7 +609,7 @@ const [isRefreshing, setIsRefreshing] = useState(false);
     cutout: '65%',
     plugins: {
       legend: {
-        position: 'bottom' as const,
+        pointStyle: 'circle' as const,
         labels: { 
           color: '#f8fafc', 
           padding: 20, 
@@ -695,11 +690,11 @@ const [isRefreshing, setIsRefreshing] = useState(false);
     },
     interaction: {
       intersect: false,
-      mode: 'index'
+      mode: 'index' as const
     },
     animation: {
       duration: 1000,
-      easing: 'easeInOutQuart'
+      easing: 'easeInOutQuart' as const
     }
   };
   const getProjectProgressChartData = () => {
@@ -792,7 +787,7 @@ const [isRefreshing, setIsRefreshing] = useState(false);
     },
     animation: {
       duration: 1500,
-      easing: 'easeInOutQuart'
+      easing: 'easeInOutQuart' as const
     }
   };
 
@@ -1394,7 +1389,7 @@ return (
                       {dashboardData.pendingTasks.tasks
                         .filter(t => t.status.toLowerCase() === 'todo')
                         .map((task) => (
-                          <div key={task.id} style={styles.taskCard} onClick={() => handleTaskClick(task.id)} className="task-card">
+                          <div key={task.id} style={styles.taskCard} onClick={() => handleTaskClick()} className="task-card">
                           <div style={styles.taskHeader}>
                             <span style={{...styles.priorityBadge, backgroundColor: getPriorityColor(task.priority)}}>
                               {translatePriority(task.priority)}
@@ -1455,7 +1450,7 @@ return (
                       {dashboardData.pendingTasks.tasks
                         .filter(t => t.status.toLowerCase() === 'in progress')
                         .map((task) => (
-                          <div key={task.id} style={styles.taskCard} onClick={() => handleTaskClick(task.id)} className="task-card">
+                          <div key={task.id} style={styles.taskCard} onClick={() => handleTaskClick()} className="task-card">
                           <div style={styles.taskHeader}>
                             <span style={{...styles.priorityBadge, backgroundColor: getPriorityColor(task.priority)}}>
                               {translatePriority(task.priority)}
@@ -1516,7 +1511,7 @@ return (
                       {dashboardData.pendingTasks.tasks
                         .filter(t => t.status.toLowerCase() === 'review')
                         .map((task) => (
-                          <div key={task.id} style={styles.taskCard} onClick={() => handleTaskClick(task.id)} className="task-card">
+                          <div key={task.id} style={styles.taskCard} onClick={() => handleTaskClick()} className="task-card">
                           <div style={styles.taskHeader}>
                             <span style={{...styles.priorityBadge, backgroundColor: getPriorityColor(task.priority)}}>
                               {translatePriority(task.priority)}
@@ -1575,8 +1570,8 @@ return (
 
   return (
     <div style={styles.container}>
-      {/* MODALES CON DEBUGGING */}
-      {console.log('Rendering modales:', { showTaskListModal, showCreateTaskModal })}
+  
+   
       <CrearProyectoModal
         key={`create-project-${showCreateProjectModal}`}
         isOpen={showCreateProjectModal}
@@ -3341,4 +3336,3 @@ const styles: { [key: string]: React.CSSProperties } = {
     
 };
 export default PrincipalPage;
-

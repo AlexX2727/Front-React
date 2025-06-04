@@ -13,14 +13,14 @@ import {
 interface CreateTaskDto {
   project_id: number;
   title: string;
-  description?: string;
-  status?: 'Todo' | 'In Progress' | 'Review' | 'Done' | 'Blocked';
-  priority?: 'Low' | 'Medium' | 'High' | 'Critical';
-  dueDate?: string;
-  estimatedHours?: number;
-  assignee_id?: number; // Solo permite number o undefined (no null)
-  actualHours?: number;
-  completedAt?: string;
+  description?: string | null;
+  status: 'Todo' | 'In Progress' | 'Review' | 'Done' | 'Blocked';
+  priority: 'Low' | 'Medium' | 'High' | 'Critical';
+  dueDate?: string | null;
+  estimatedHours?: number | null;
+  actualHours?: string | null | undefined;
+  assignee_id?: number | null;
+  completedAt?: string | null;
 }
 import './TareasPage.css';
 
@@ -377,7 +377,7 @@ const TareasPage: React.FC = () => {
               <select 
                 id="assignee_id" 
                 name="assignee_id"
-                value={taskForm.assignee_id === undefined ? '' : taskForm.assignee_id}
+                value={taskForm.assignee_id?.toString() || ''}
                 onChange={handleFormChange}
               >
                 <option value="">Sin asignar</option>
