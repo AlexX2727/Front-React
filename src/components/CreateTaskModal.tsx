@@ -49,6 +49,7 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
   // Estados de carga y mensajes
   const [loadingProjects, setLoadingProjects] = useState<boolean>(false);
   const [loadingMembers, setLoadingMembers] = useState<boolean>(false);
+  // Eliminadas variables no utilizadas
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -61,7 +62,8 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
     status: 'Todo',
     priority: 'Medium',
     dueDate: '',
-    estimatedHours: 0,
+    estimatedHours: '',
+    actualHours: null,
     assignee_id: undefined
   });
 
@@ -200,7 +202,8 @@ const CreateTaskModal: React.FC<CreateTaskModalProps> = ({
         status: taskForm.status,
         priority: taskForm.priority,
         dueDate: taskForm.dueDate || undefined,
-        estimatedHours: taskForm.estimatedHours || undefined,
+        estimatedHours: taskForm.estimatedHours ? String(taskForm.estimatedHours) : undefined,
+        actualHours: taskForm.actualHours ? String(taskForm.actualHours) : null,
         assignee_id: taskForm.assignee_id,
       };
 

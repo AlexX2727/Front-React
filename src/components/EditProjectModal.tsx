@@ -30,7 +30,7 @@ const EditProjectModal: React.FC<EditProjectModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const [proyecto, setProyecto] = useState<Proyecto | null>(null);
+  const [_proyecto, setProyecto] = useState<Proyecto | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
