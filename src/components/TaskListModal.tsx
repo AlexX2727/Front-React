@@ -1,7 +1,7 @@
-// TaskListModal.tsx - CON FUNCIONALIDAD DE TASK DETAIL MODAL
+// TaskListModal.tsx - CON FILTROS DINÁMICOS COMPLETOS
 import React, { useState, useEffect } from 'react';
 import './TaskListModal.css';
-import TaskDetailModal from './TaskDetailModal'; // Importar el modal de detalles
+import TaskDetailModal from './TaskDetailModal';
 import { 
   getProjectsByOwner, 
   Project,
@@ -34,7 +34,6 @@ interface TaskListModalProps {
 const TaskListModal: React.FC<TaskListModalProps> = ({
   isOpen,
   onClose,
-  // theme = 'dark' // Unused prop
 }) => {
   // Estados básicos
   const storedUser = localStorage.getItem("user");
@@ -43,6 +42,8 @@ const TaskListModal: React.FC<TaskListModalProps> = ({
   const [projects, setProjects] = useState<Project[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string>(''); // Nuevo estado para filtro de estado
+  const [selectedPriority, setSelectedPriority] = useState<string>(''); // Nuevo estado para filtro de prioridad
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [loadingTasks, setLoadingTasks] = useState<boolean>(false);
@@ -52,6 +53,10 @@ const TaskListModal: React.FC<TaskListModalProps> = ({
   const [showTaskDetail, setShowTaskDetail] = useState<boolean>(false);
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null);
   const [taskProjectMembers, setTaskProjectMembers] = useState<User[]>([]);
+
+  // Estados dinámicos para opciones de filtro
+  const [availableStatuses, setAvailableStatuses] = useState<string[]>([]);
+  const [availablePriorities, setAvailablePriorities] = useState<string[]>([]);
 
   console.log('TaskListModal render:', { isOpen, user: user?.id });
 
@@ -87,9 +92,19 @@ const TaskListModal: React.FC<TaskListModalProps> = ({
         };
         
         if (selectedProject) filterOptions.projectId = selectedProject;
+        if (selectedStatus) filterOptions.status = selectedStatus;
+        if (selectedPriority) filterOptions.priority = selectedPriority;
         
         const tasksData = await getTasksWithFilters(filterOptions);
         setTasks(tasksData);
+
+        // Extraer estados y prioridades únicas de las tareas cargadas
+        const statuses = [...new Set(tasksData.map(task => task.status).filter(Boolean))];
+        const priorities = [...new Set(tasksData.map(task => task.priority).filter(Boolean))];
+        
+        setAvailableStatuses(statuses);
+        setAvailablePriorities(priorities);
+        
       } catch (err) {
         console.error('Error al cargar tareas:', err);
         setError('Error al cargar las tareas. Por favor, intente de nuevo.');
@@ -99,9 +114,9 @@ const TaskListModal: React.FC<TaskListModalProps> = ({
     };
 
     fetchTasks();
-  }, [isOpen, user?.id, selectedProject]);
+  }, [isOpen, user?.id, selectedProject, selectedStatus, selectedPriority]);
 
-  // Filtrar tareas por búsqueda
+  // Filtrar tareas por búsqueda (sin afectar los filtros de estado y prioridad ya aplicados)
   useEffect(() => {
     if (!searchTerm) {
       setFilteredTasks(tasks);
@@ -120,15 +135,21 @@ const TaskListModal: React.FC<TaskListModalProps> = ({
     setFilteredTasks(filtered);
   }, [tasks, searchTerm]);
 
+  // Función para limpiar todos los filtros
+  const clearAllFilters = () => {
+    setSelectedProject(null);
+    setSelectedStatus('');
+    setSelectedPriority('');
+    setSearchTerm('');
+  };
+
   // Función para abrir el modal de detalles de tarea
   const handleTaskClick = async (taskId: number) => {
     try {
       setSelectedTaskId(taskId);
       
-      // Buscar la tarea para obtener el project_id
       const task = tasks.find(t => t.id === taskId);
       if (task?.project_id) {
-        // Cargar miembros del proyecto
         try {
           const members = await getTaskProjectMembers(task.project_id);
           setTaskProjectMembers(members);
@@ -153,7 +174,6 @@ const TaskListModal: React.FC<TaskListModalProps> = ({
 
   // Función para refrescar tareas después de editar
   const handleTaskEditSuccess = () => {
-    // Recargar las tareas para mostrar los cambios
     if (user?.id) {
       const fetchTasks = async () => {
         try {
@@ -163,6 +183,8 @@ const TaskListModal: React.FC<TaskListModalProps> = ({
           };
           
           if (selectedProject) filterOptions.projectId = selectedProject;
+          if (selectedStatus) filterOptions.status = selectedStatus;
+          if (selectedPriority) filterOptions.priority = selectedPriority;
           
           const tasksData = await getTasksWithFilters(filterOptions);
           setTasks(tasksData);
@@ -289,6 +311,66 @@ const TaskListModal: React.FC<TaskListModalProps> = ({
                   ))}
                 </select>
               </div>
+              
+              {/* Segunda fila de filtros */}
+              <div style={{...filterRowStyles, marginTop: '16px'}}>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  style={selectStyles}
+                >
+                  <option value="">Todos los estados</option>
+                  {availableStatuses.map(status => (
+                    <option key={status} value={status}>
+                      {getEstadoTexto(status)}
+                    </option>
+                  ))}
+                </select>
+                
+                <select
+                  value={selectedPriority}
+                  onChange={(e) => setSelectedPriority(e.target.value)}
+                  style={selectStyles}
+                >
+                  <option value="">Todas las prioridades</option>
+                  {availablePriorities.map(priority => (
+                    <option key={priority} value={priority}>
+                      {getPrioridadTexto(priority)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Botones de acción */}
+              <div style={filterActionsStyles}>
+                <button
+                  onClick={clearAllFilters}
+                  style={clearFiltersButtonStyles}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = '#374151';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = '#6b7280';
+                  }}
+                >
+                  Limpiar filtros
+                </button>
+                
+                <div style={filterSummaryStyles}>
+                  {(selectedProject || selectedStatus || selectedPriority || searchTerm) && (
+                    <span style={activeFiltersTextStyles}>
+                      Filtros activos: {
+                        [
+                          selectedProject && projects.find(p => p.id === selectedProject)?.name,
+                          selectedStatus && getEstadoTexto(selectedStatus),
+                          selectedPriority && getPrioridadTexto(selectedPriority),
+                          searchTerm && `"${searchTerm}"`
+                        ].filter(Boolean).join(', ')
+                      }
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
 
             {/* Error */}
@@ -364,12 +446,31 @@ const TaskListModal: React.FC<TaskListModalProps> = ({
             ) : !loadingTasks ? (
               <div style={emptyStateStyles}>
                 <p>No se encontraron tareas que coincidan con los filtros</p>
+                {(selectedProject || selectedStatus || selectedPriority || searchTerm) && (
+                  <button
+                    onClick={clearAllFilters}
+                    style={clearFiltersEmptyButtonStyles}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = 'rgba(59, 130, 246, 0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                    }}
+                  >
+                    Limpiar filtros para ver todas las tareas
+                  </button>
+                )}
               </div>
             ) : null}
           </div>
 
           {/* Footer */}
           <div style={footerStyles}>
+            <div style={taskCountStyles}>
+              <span>
+                {filteredTasks.length} tarea{filteredTasks.length !== 1 ? 's' : ''} encontrada{filteredTasks.length !== 1 ? 's' : ''}
+              </span>
+            </div>
             <button 
               onClick={onClose} 
               style={closeButtonBottomStyles}
@@ -398,7 +499,7 @@ const TaskListModal: React.FC<TaskListModalProps> = ({
   );
 };
 
-// Estilos inline (actualizados con efectos hover mejorados)
+// Estilos inline actualizados
 const modalOverlayStyles: React.CSSProperties = {
   position: 'fixed',
   top: 0,
@@ -473,6 +574,38 @@ const filterRowStyles: React.CSSProperties = {
   display: 'grid',
   gridTemplateColumns: '1fr 1fr',
   gap: '16px'
+};
+
+const filterActionsStyles: React.CSSProperties = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  marginTop: '16px',
+  paddingTop: '16px',
+  borderTop: '1px solid rgba(148, 163, 184, 0.1)'
+};
+
+const clearFiltersButtonStyles: React.CSSProperties = {
+  backgroundColor: '#6b7280',
+  color: 'white',
+  border: 'none',
+  borderRadius: '8px',
+  padding: '8px 16px',
+  fontSize: '14px',
+  fontWeight: 500,
+  cursor: 'pointer',
+  transition: 'all 0.2s'
+};
+
+const filterSummaryStyles: React.CSSProperties = {
+  flex: 1,
+  marginLeft: '16px'
+};
+
+const activeFiltersTextStyles: React.CSSProperties = {
+  fontSize: '12px',
+  color: '#94a3b8',
+  fontStyle: 'italic'
 };
 
 const inputStyles: React.CSSProperties = {
@@ -600,12 +733,30 @@ const emptyStateStyles: React.CSSProperties = {
   color: '#94a3b8'
 };
 
+const clearFiltersEmptyButtonStyles: React.CSSProperties = {
+  marginTop: '16px',
+  backgroundColor: 'transparent',
+  color: '#3b82f6',
+  border: '1px solid #3b82f6',
+  borderRadius: '8px',
+  padding: '8px 16px',
+  fontSize: '14px',
+  cursor: 'pointer',
+  transition: 'all 0.2s'
+};
+
 const footerStyles: React.CSSProperties = {
   padding: '16px 24px',
   borderTop: '1px solid rgba(148, 163, 184, 0.2)',
   backgroundColor: 'rgba(30, 41, 59, 0.8)',
   display: 'flex',
-  justifyContent: 'flex-end'
+  justifyContent: 'space-between',
+  alignItems: 'center'
+};
+
+const taskCountStyles: React.CSSProperties = {
+  color: '#94a3b8',
+  fontSize: '14px'
 };
 
 const closeButtonBottomStyles: React.CSSProperties = {
